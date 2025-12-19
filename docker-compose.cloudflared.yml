@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    env_file: .env
+    volumes:
+      - .:/app
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run
+    env_file: .env.cloudflared
+    depends_on:
+      - web
+    restart: always
