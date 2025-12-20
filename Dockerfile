@@ -20,12 +20,8 @@ RUN poetry config virtualenvs.create false && poetry install --no-root
 # Copy project
 COPY . /app/
 
-# Run migrations
-RUN poetry run python manage.py migrate
-RUN poetry run python manage.py collectstatic --noinput
-
 # Expose port 8000
 EXPOSE 8000
 
-# Run gunicorn
-CMD ["poetry", "run", "gunicorn", "cauldronPluginRegistry.wsgi:application", "--bind", "0.0.0.0:8000"]
+# Run the entrypoint script
+CMD ["/app/run.sh"]
