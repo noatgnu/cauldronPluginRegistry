@@ -19,6 +19,7 @@ RUN poetry config virtualenvs.create false && poetry install --no-root
 
 # Copy project
 COPY . /app/
+RUN chmod +x /app/run.sh
 
 # Expose port 8000
 EXPOSE 8000
