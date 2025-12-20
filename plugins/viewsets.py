@@ -122,4 +122,8 @@ class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_fields = ['name']
     permission_classes = [AllowAny]
 
-class CategoryViewSet(viewsets.ReadOnlyM
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filterset_fields = ['name']
+    permission_classes = [AllowAny]
