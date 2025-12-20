@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PluginViewSet, AuthorViewSet, CategoryViewSet, PluginSubmissionViewSet, api_root
+from .views import PluginViewSet, AuthorViewSet, CategoryViewSet, PluginSubmissionViewSet
 
 router = DefaultRouter()
 router.register(r'plugins', PluginViewSet, basename='plugin')

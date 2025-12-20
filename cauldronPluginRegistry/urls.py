@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.authtoken import views
-from plugins.views import api_root
+from cauldronPluginRegistry.views import api_root
 
 urlpatterns = [
     path('', api_root),

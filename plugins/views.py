@@ -4,21 +4,11 @@ import yaml
 import os
 
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.reverse import reverse
 from .models import Plugin, Author, Category
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer
-
-@api_view(['GET'])
-def api_root(request, format=None):
-    return Response({
-        'plugins': reverse('plugin-list', request=request, format=format),
-        'authors': reverse('author-list', request=request, format=format),
-        'categories': reverse('category-list', request=request, format=format),
-        'submit': reverse('submit-list', request=request, format=format)
-    })
 
 class PluginSubmissionViewSet(viewsets.ViewSet):
     serializer_class = PluginSubmissionSerializer
