@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Plugin List - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+    <h1>Cauldron Plugin Registry</h1>
+    {% for plugin in object_list %}
+        <div class="plugin">
+            <h2><a href="{% url 'plugin-detail' plugin.pk %}">{{ plugin.name }}</a></h2>
+            <p>{{ plugin.description }}</p>
+        </div>
+    {% empty %}
+        <p>No plugins found.</p>
+    {% endfor %}
+{% endblock %}

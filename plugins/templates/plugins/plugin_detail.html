@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ object.name }} - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h1>{{ object.name }}</h1>
+        <p><strong>Version:</strong> {{ object.version }}</p>
+        <p><strong>Author:</strong> {{ object.author.name }}</p>
+        <p><strong>Category:</strong> {{ object.category.name }}</p>
+        <p>{{ object.description }}</p>
+        <a href="cauldron://install/plugin/{{ object.repository }}" class="install-button">Install with Cauldron</a>
+        <hr>
+        <div>
+            {{ object.readme|safe }}
+        </div>
+    </div>
+{% endblock %}

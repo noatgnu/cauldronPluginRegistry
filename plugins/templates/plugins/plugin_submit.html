@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Plugin - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+    <h2>Submit a Plugin</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit</button>
+    </form>
+{% endblock %}

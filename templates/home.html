@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+    <div class="search-container">
+        <h1>Cauldron Plugin Registry</h1>
+        <form action="{% url 'plugin-list' %}" method="get">
+            <input type="text" name="q" class="search-box" placeholder="Search for plugins...">
+            <br><br>
+            <input type="submit" value="Search" class="search-button">
+        </form>
+    </div>
+{% endblock %}

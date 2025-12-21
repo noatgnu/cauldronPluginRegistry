@@ -12,7 +12,12 @@ from .models import (
 
 admin.site.register(Author)
 admin.site.register(Category)
-admin.site.register(Plugin)
+class PluginAdmin(admin.ModelAdmin):
+    list_display = ('name', 'version', 'status', 'author', 'category')
+    list_filter = ('status', 'category', 'author')
+    list_editable = ('status',)
+
+admin.site.register(Plugin, PluginAdmin)
 admin.site.register(Tag)
 admin.site.register(PluginTag)
 admin.site.register(Runtime)
