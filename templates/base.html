@@ -9,11 +9,12 @@
         body { display: flex; min-height: 100vh; flex-direction: column; background-color: #f5f5f5; }
         main { flex: 1 0 auto; }
         .nav-wrapper { background-color: #3f51b5; /* Indigo */ }
-        .page-footer { background-color: #3f51b5; /* Indigo */ }
+        .page-footer { background-color: #3f51b5; /* Indigo */ padding: 10px 0;}
         .brand-logo { font-weight: 300; }
     </style>
 </head>
 <body>
+    {% block header %}
     <header>
         <nav class="z-depth-2">
             <div class="nav-wrapper">
@@ -30,6 +31,7 @@
             </div>
         </nav>
     </header>
+    {% endblock %}
 
     <main>
         <div class="container" style="margin-top: 30px;">
@@ -38,21 +40,15 @@
         </div>
     </main>
 
+    {% block footer %}
     <footer class="page-footer">
-        <div class="container">
-            <div class="row">
-                <div class="col l6 s12">
-                    <h5 class="white-text">About</h5>
-                    <p class="grey-text text-lighten-4">A registry for Cauldron plugins.</p>
-                </div>
-            </div>
-        </div>
         <div class="footer-copyright">
             <div class="container">
                 © 2025 Cauldron
             </div>
         </div>
     </footer>
+    {% endblock %}
 
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
