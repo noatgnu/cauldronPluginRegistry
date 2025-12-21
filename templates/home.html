@@ -3,12 +3,26 @@
 {% block title %}Home - Cauldron Plugin Registry{% endblock %}
 
 {% block content %}
-    <div class="search-container">
-        <h1>Cauldron Plugin Registry</h1>
-        <form action="{% url 'plugin-list' %}" method="get">
-            <input type="text" name="q" class="search-box" placeholder="Search for plugins...">
-            <br><br>
-            <input type="submit" value="Search" class="search-button">
-        </form>
+<div class="row">
+    <div class="col s12 m8 offset-m2 l6 offset-l3">
+        <div class="card-panel z-depth-2" style="padding: 40px;">
+            <h1 class="center-align" style="font-weight: 300;">Cauldron Plugin Registry</h1>
+            <div class="row">
+                <form action="{% url 'plugin-list' %}" method="get" class="col s12">
+                    <div class="input-field">
+                        <i class="material-icons prefix">search</i>
+                        <input id="search" type="text" name="q" class="validate">
+                        <label for="search">Search for plugins...</label>
+                    </div>
+                    <div class="center-align">
+                        <button class="btn-large waves-effect waves-light" type="submit" name="action">
+                            Search
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
+</div>
 {% endblock %}

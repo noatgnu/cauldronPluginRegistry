@@ -6,15 +6,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { display: flex; min-height: 100vh; flex-direction: column; }
+        body { display: flex; min-height: 100vh; flex-direction: column; background-color: #f5f5f5; }
         main { flex: 1 0 auto; }
-        .nav-wrapper { background-color: #333; }
-        .footer { background-color: #333; color: white; padding: 20px 0; }
+        .nav-wrapper { background-color: #3f51b5; /* Indigo */ }
+        .page-footer { background-color: #3f51b5; /* Indigo */ }
+        .brand-logo { font-weight: 300; }
     </style>
 </head>
 <body>
     <header>
-        <nav>
+        <nav class="z-depth-2">
             <div class="nav-wrapper">
                 <a href="{% url 'home' %}" class="brand-logo" style="padding-left: 20px;">Cauldron Registry</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
@@ -31,7 +32,7 @@
     </header>
 
     <main>
-        <div class="container">
+        <div class="container" style="margin-top: 30px;">
             {% block content %}
             {% endblock %}
         </div>
