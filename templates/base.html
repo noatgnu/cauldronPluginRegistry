@@ -2,37 +2,58 @@
 <html>
 <head>
     <title>{% block title %}Cauldron Plugin Registry{% endblock %}</title>
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; min-height: 100vh; }
-        header { background-color: #333; color: white; padding: 10px 20px; text-align: center; }
-        header a { color: white; text-decoration: none; margin: 0 10px; }
-        .content { flex: 1; padding: 20px; }
-        footer { background-color: #333; color: white; padding: 10px 20px; text-align: center; margin-top: auto; }
+        body { display: flex; min-height: 100vh; flex-direction: column; }
+        main { flex: 1 0 auto; }
+        .nav-wrapper { background-color: #333; }
+        .footer { background-color: #333; color: white; padding: 20px 0; }
     </style>
 </head>
 <body>
     <header>
         <nav>
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'plugin-list' %}">Browse Plugins</a>
-            <a href="/admin/">Admin</a>
-            <a href="/api/submit/">Submit</a>
-            <a href="/api/">API Root</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'logout' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login' %}">Login</a>
-            {% endif %}
+            <div class="nav-wrapper">
+                <a href="{% url 'home' %}" class="brand-logo" style="padding-left: 20px;">Cauldron Registry</a>
+                <ul id="nav-mobile" class="right hide-on-med-and-down">
+                    <li><a href="{% url 'plugin-list' %}">Browse Plugins</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% url 'plugin-submit' %}">Submit Plugin</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
         </nav>
     </header>
 
-    <div class="content">
-        {% block content %}
-        {% endblock %}
-    </div>
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
 
-    <footer>
-        <p>&copy; 2025 Cauldron Plugin Registry</p>
+    <footer class="page-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col l6 s12">
+                    <h5 class="white-text">About</h5>
+                    <p class="grey-text text-lighten-4">A registry for Cauldron plugins.</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <div class="container">
+                © 2025 Cauldron
+            </div>
+        </div>
     </footer>
+
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>

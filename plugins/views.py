@@ -10,10 +10,7 @@ def home_view(request):
     return render(request, 'home.html')
 
 class CustomLoginView(LoginView):
-    template_name = 'plugins/login.html'
-    
-    def get_success_url(self):
-        return '/'
+    template_name = 'registration/login.html'
 
 def logout_view(request):
     logout(request)
