@@ -12,15 +12,19 @@
         .page-footer { background-color: #3f51b5; /* Indigo */ padding: 10px 0;}
         .brand-logo { font-weight: 300; }
         /* Style for transparent header/footer on homepage */
-        .transparent-nav .nav-wrapper { background-color: transparent !important; box-shadow: none !important;}
-        .transparent-nav .brand-logo { display: none; }
+        .transparent-header header, .transparent-footer-outer footer {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
+        .transparent-header .nav-wrapper { background-color: transparent !important; box-shadow: none !important;}
+        .transparent-header .brand-logo { display: none; }
         .transparent-footer { background-color: transparent !important; box-shadow: none !important; }
     </style>
 </head>
 <body>
     {% block header %}
-    <header>
-        <nav class="z-depth-2 {% block nav_classes %}{% endblock %}">
+    <header class="{% block header_outer_classes %}{% endblock %}">
+        <nav class="{% block nav_classes %}{% endblock %} z-depth-2">
             <div class="nav-wrapper">
                 <a href="{% url 'home' %}" class="brand-logo" style="padding-left: 20px;">Cauldron Registry</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
@@ -45,7 +49,7 @@
     </main>
 
     {% block footer %}
-    <footer class="page-footer {% block footer_classes %}{% endblock %}">
+    <footer class="page-footer {% block footer_outer_classes %}{% endblock %}">
         <div class="footer-copyright">
             <div class="container">
                 © 2025 Cauldron
