@@ -8,78 +8,84 @@
     button:focus, a:focus {
         outline: none;
     }
+    .login-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 64px - 53px); /* Adjust for header and footer heights */
+        padding: 20px;
+    }
+    .login-form {
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+    }
+    .input-field {
+        margin-bottom: 20px; /* Space between input fields */
+    }
     .button-group {
         display: flex;
         justify-content: center;
         align-items: center;
         gap: 20px; /* Space between buttons */
-        margin-top: 20px;
+        margin-top: 30px; /* More space above buttons */
         flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
     }
     .login-btn {
         min-width: 180px; /* Ensure consistent button width */
+        margin-bottom: 10px; /* Add some vertical spacing if wrapped */
     }
-    /* Style the main content area for centering without card-panel */
-    main .container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: calc(100vh - 64px - 53px); /* Adjust for header and footer heights */
-        /* You might need to adjust 64px (header) and 53px (footer) based on actual heights */
+    .orcid-btn {
+        background-color: #A6CE39 !important; /* ORCID green */
+        color: white !important;
     }
-    .login-form-container {
-        max-width: 500px; /* Adjust as needed */
-        margin: 0 auto;
-        padding: 20px; /* Add some padding if desired */
-        background-color: white; /* Give it a background color */
-        border-radius: 8px; /* Rounded corners */
-        box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14), 0 3px 1px -2px rgba(0,0,0,0.12), 0 1px 5px 0 rgba(0,0,0,0.20); /* Material shadow */
+    .orcid-btn:hover {
+        background-color: #92b732 !important; /* Slightly darker ORCID green on hover */
     }
 </style>
 
-<div class="row">
-    <div class="col s12 m8 offset-m2 l6 offset-l3">
-        <div class="login-form-container">
-            <h3 class="center-align" style="font-weight: 300;">Login</h3>
-            <form method="post">
-                {% csrf_token %}
-                <div class="input-field col s12">
-                    <input id="id_username" name="{{ form.username.name }}" type="text" class="validate" value="{{ form.username.value|default_if_none:'' }}">
-                    <label for="id_username">Username</label>
-                    {% if form.username.errors %}
-                        {% for error in form.username.errors %}
-                            <span class="helper-text red-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                <div class="input-field col s12">
-                    <input id="id_password" name="{{ form.password.name }}" type="password" class="validate">
-                    <label for="id_password">Password</label>
-                    {% if form.password.errors %}
-                        {% for error in form.password.errors %}
-                            <span class="helper-text red-text">{{ error }}</span>
-                        {% endfor %}
-                    {% endif %}
-                </div>
-                {% if form.non_field_errors %}
-                    <div class="col s12">
-                        {% for error in form.non_field_errors %}
-                            <p class="red-text">{{ error }}</p>
-                        {% endfor %}
-                    </div>
+<div class="login-wrapper">
+    <div class="login-form">
+        <h3 style="font-weight: 300;">Login</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="input-field">
+                <input id="id_username" name="{{ form.username.name }}" type="text" class="validate" value="{{ form.username.value|default_if_none:'' }}">
+                <label for="id_username">Username</label>
+                {% if form.username.errors %}
+                    {% for error in form.username.errors %}
+                        <span class="helper-text red-text">{{ error }}</span>
+                    {% endfor %}
                 {% endif %}
-                <div class="col s12 button-group">
-                    <button class="btn-large waves-effect waves-light login-btn" type="submit" name="action">
-                        Login
-                        <i class="material-icons right">send</i>
-                    </button>
-                    <a href="{% url 'social:begin' 'orcid' %}" class="waves-effect waves-light btn-large green darken-2 login-btn">
-                        Login with ORCID
-                        <i class="material-icons right">account_circle</i>
-                    </a>
+            </div>
+            <div class="input-field" style="margin-bottom: 30px;">
+                <input id="id_password" name="{{ form.password.name }}" type="password" class="validate">
+                <label for="id_password">Password</label>
+                {% if form.password.errors %}
+                    {% for error in form.password.errors %}
+                        <span class="helper-text red-text">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            {% if form.non_field_errors %}
+                <div style="margin-bottom: 20px;">
+                    {% for error in form.non_field_errors %}
+                        <p class="red-text">{{ error }}</p>
+                    {% endfor %}
                 </div>
-            </form>
-        </div>
+            {% endif %}
+            <div class="button-group">
+                <button class="btn-large waves-effect waves-light login-btn" type="submit" name="action">
+                    Login
+                    <i class="material-icons right">send</i>
+                </button>
+                <a href="{% url 'social:begin' 'orcid' %}" class="waves-effect waves-light btn-large orcid-btn login-btn">
+                    ORCID Login
+                    <i class="material-icons right">person_pin</i> {# Using generic person_pin for ORCID #}
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
