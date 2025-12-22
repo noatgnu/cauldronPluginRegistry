@@ -4,21 +4,51 @@
 
 {% block body_class %}homepage-hero-bg{% endblock %}
 
-{% block header %}{% endblock %} {# Completely remove the default header #}
-{% block footer %}{% endblock %} {# Completely remove the default footer #}
-
 {% block content %}
 <style>
+    /* Styling specific to the home page body */
     .homepage-hero-bg {
         background-color: #3f51b5; /* Indigo */
         color: white;
     }
+    
+    /* Make header and footer truly transparent on the homepage */
+    .homepage-hero-bg header, .homepage-hero-bg footer {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+    .homepage-hero-bg nav {
+        background-color: transparent !important;
+        box-shadow: none !important;
+    }
+    .homepage-hero-bg .nav-wrapper {
+        background-color: transparent !important;
+    }
+    .homepage-hero-bg .brand-logo {
+        display: none; /* Hide site name on homepage */
+    }
+    .homepage-hero-bg .page-footer {
+        background-color: transparent !important;
+    }
+    .homepage-hero-bg .footer-copyright {
+        background-color: transparent !important;
+    }
+
+    /* Main content styling */
     main {
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
+        min-height: calc(100vh - 64px - 40px); /* Adjust for header and footer height */
     }
+    @media only screen and (max-width : 992px) {
+        /* Adjust for smaller screens if header/footer height changes */
+        main {
+            min-height: calc(100vh - 56px - 40px);
+        }
+    }
+
+
     .input-field input[type=text]:focus + label,
     .input-field input[type=text]:not(.validate) + label {
         color: white;
@@ -30,52 +60,12 @@
     .input-field input[type=text].white-text {
         border-bottom: 1px solid rgba(255,255,255,0.7);
     }
-    /* Styles for the navigation and footer elements that are now part of content */
-    .hero-nav {
-        position: absolute;
-        top: 0;
-        width: 100%;
-        background-color: transparent !important;
-        box-shadow: none !important;
-        padding-left: 20px; /* To match brand-logo padding */
-        padding-right: 20px;
-    }
-    .hero-nav .brand-logo {
-        display: none; /* Hide site name on homepage */
-    }
-    .hero-footer {
-        position: absolute;
-        bottom: 0;
-        width: 100%;
-        background-color: transparent !important;
-        box-shadow: none !important;
-        padding: 10px 0;
-        color: white;
-    }
-    .hero-footer .footer-copyright {
-        background-color: transparent !important;
-    }
-
 </style>
-
-<nav class="hero-nav">
-    <div class="nav-wrapper">
-        <ul id="nav-mobile" class="right hide-on-med-and-down">
-            <li><a href="{% url 'plugin-list' %}" class="white-text">Browse Plugins</a></li>
-            {% if user.is_authenticated %}
-                <li><a href="{% url 'plugin-submit' %}" class="white-text">Submit Plugin</a></li>
-                <li><a href="{% url 'logout' %}" class="white-text">Logout</a></li>
-            {% else %}
-                <li><a href="{% url 'login' %}" class="white-text">Login</a></li>
-            {% endif %}
-        </ul>
-    </div>
-</nav>
 
 <div class="container">
     <div class="row">
         <div class="col s12 m10 offset-m1 l8 offset-l2">
-            <div class="center-align" style="padding: 40px; background-color: transparent !important;">
+            <div class="center-align" style="padding: 40px; background-color: transparent !important; box-shadow: none !important; border: none !important;">
                 <h1 style="font-weight: 300;">Cauldron Plugin Registry</h1>
                 <h5 style="font-weight: 300;">Discover and install plugins for Cauldron</h5>
             </div>
@@ -87,7 +77,7 @@
                         <label for="search" class="white-text">Search for plugins...</label>
                     </div>
                     <div class="col s12 center-align" style="margin-top: 20px;">
-                        <button class="btn-large waves-effect waves-light white-text" type="submit" name="action" style="background-color: #e91e63;">
+                        <button class="btn-large waves-effect waves-light" type="submit" name="action" style="background-color: #e91e63;">
                             Search
                             <i class="material-icons right">send</i>
                         </button>
@@ -100,12 +90,4 @@
         </div>
     </div>
 </div>
-
-<footer class="hero-footer">
-    <div class="footer-copyright">
-        <div class="container">
-            © 2025 Cauldron
-        </div>
-    </div>
-</footer>
 {% endblock %}
