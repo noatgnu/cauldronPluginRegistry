@@ -11,11 +11,28 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        min-height: calc(100vh); /* Ensure main takes full viewport height */
+        background-color: #3f51b5; /* Match header/footer color for seamless look */
+    }
+    .card-panel {
+        background-color: rgba(63, 81, 181, 0.8) !important; /* Slightly transparent indigo */
+        color: white;
+    }
+    .input-field input[type=text]:focus + label,
+    .input-field input[type=text]:not(.validate) + label {
+        color: white;
+    }
+    .input-field input[type=text]:focus {
+        border-bottom: 1px solid white;
+        box-shadow: 0 1px 0 0 white;
+    }
+    .input-field input[type=text].white-text {
+        border-bottom: 1px solid rgba(255,255,255,0.7);
     }
 </style>
 <div class="row">
     <div class="col s12 m10 offset-m1 l8 offset-l2">
-        <div class="card-panel z-depth-2" style="padding: 40px; background-color: #3f51b5; color: white;">
+        <div class="card-panel z-depth-2" style="padding: 40px;">
             <h1 class="center-align" style="font-weight: 300;">Cauldron Plugin Registry</h1>
             <h5 class="center-align" style="font-weight: 300;">Discover and install plugins for Cauldron</h5>
             <div class="row" style="margin-top: 50px;">
@@ -25,8 +42,8 @@
                         <input id="search" type="text" name="q" class="validate white-text">
                         <label for="search" class="white-text">Search for plugins...</label>
                     </div>
-                    <div class="center-align">
-                        <button class="btn-large waves-effect waves-light" type="submit" name="action">
+                    <div class="col s12 center-align" style="margin-top: 20px;">
+                        <button class="btn-large waves-effect waves-light white-text" type="submit" name="action" style="background-color: #e91e63;">
                             Search
                             <i class="material-icons right">send</i>
                         </button>
