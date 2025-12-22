@@ -19,7 +19,7 @@ def logout_view(request):
 class PluginSubmitView(FormView):
     template_name = 'plugins/plugin_submit.html'
     form_class = PluginSubmitForm
-    success_url = '/api/browse/'
+    success_url = '/plugins/' # Changed from /api/browse/ to /plugins/
 
     def form_valid(self, form):
         # This is a bit of a hack, but it allows us to reuse the logic from the ViewSet
@@ -60,4 +60,3 @@ class PluginDetailView(DetailView):
         if not self.request.user.is_staff:
             queryset = queryset.filter(status='approved')
         return queryset
-

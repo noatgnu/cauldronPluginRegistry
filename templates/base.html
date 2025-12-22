@@ -22,9 +22,9 @@
                     <li><a href="{% url 'plugin-list' %}">Browse Plugins</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'plugin-submit' %}">Submit Plugin</a></li>
-                        <li><a href="{% url 'plugins:logout' %}">Logout</a></li>
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
                     {% else %}
-                        <li><a href="{% url 'plugins:login' %}">Login</a></li>
+                        <li><a href="{% url 'login' %}">Login</a></li>
                     {% endif %}
                 </ul>
             </div>
