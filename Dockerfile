@@ -9,7 +9,12 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # Install git
-RUN apt-get update && apt-get install -y git
+RUN apt-get update && apt-get install -y curl gpg
+RUN curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/postgresql-archive-keyring.gpg] http://apt.postgresql.org/pub/repos/apt trixie-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    apt-get update && \
+    apt-get -y install git postgresql-client-16 libssl-dev && \
+    apt-get -y upgrade
 
 # Install poetry
 RUN pip install poetry

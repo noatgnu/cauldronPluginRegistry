@@ -44,8 +44,12 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
     'social_django', # <-- Social Auth
+    'dbbackup', # <-- Django DB Backup
     'plugins',
 ]
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR / 'backups/'}
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.orcid.ORCIDOAuth2', # ORCID Backend
