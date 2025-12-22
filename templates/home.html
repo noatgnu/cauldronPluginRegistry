@@ -2,22 +2,20 @@
 
 {% block title %}Welcome - Cauldron Plugin Registry{% endblock %}
 
-{% block header_outer_classes %}transparent-header{% endblock %}
-{% block nav_shadow %}{% endblock %} {# Remove shadow from nav on homepage #}
-{% block footer_outer_classes %}transparent-footer-outer{% endblock %}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
 
 {% block content %}
 <style>
+    body {
+        background-color: #3f51b5; /* Indigo */
+        color: white;
+    }
     main {
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: calc(100vh); /* Ensure main takes full viewport height */
-        background-color: #3f51b5; /* Match header/footer color for seamless look */
-    }
-    .card-panel {
-        background-color: rgba(63, 81, 181, 0.8) !important; /* Slightly transparent indigo */
-        color: white;
+        min-height: 100vh;
     }
     .input-field input[type=text]:focus + label,
     .input-field input[type=text]:not(.validate) + label {
@@ -31,11 +29,13 @@
         border-bottom: 1px solid rgba(255,255,255,0.7);
     }
 </style>
-<div class="row">
-    <div class="col s12 m10 offset-m1 l8 offset-l2">
-        <div class="card-panel" style="padding: 40px; box-shadow: none !important; border: none !important;">
-            <h1 class="center-align" style="font-weight: 300;">Cauldron Plugin Registry</h1>
-            <h5 class="center-align" style="font-weight: 300;">Discover and install plugins for Cauldron</h5>
+<div class="container">
+    <div class="row">
+        <div class="col s12 m10 offset-m1 l8 offset-l2">
+            <div class="center-align">
+                <h1 style="font-weight: 300;">Cauldron Plugin Registry</h1>
+                <h5 style="font-weight: 300;">Discover and install plugins for Cauldron</h5>
+            </div>
             <div class="row" style="margin-top: 50px;">
                 <form action="{% url 'plugin-list' %}" method="get" class="col s12">
                     <div class="input-field white-text">
@@ -44,7 +44,7 @@
                         <label for="search" class="white-text">Search for plugins...</label>
                     </div>
                     <div class="col s12 center-align" style="margin-top: 20px;">
-                        <button class="btn-large waves-effect waves-light white-text" type="submit" name="action" style="background-color: #e91e63;">
+                        <button class="btn-large waves-effect waves-light" type="submit" name="action" style="background-color: #e91e63;">
                             Search
                             <i class="material-icons right">send</i>
                         </button>
