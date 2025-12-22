@@ -40,70 +40,24 @@ class PluginSubmitView(FormView):
 
 
 class PluginListView(ListView):
-
-
     model = Plugin
-
-
     template_name = 'plugins/plugin_list.html'
 
-
-
-
-
     def get_queryset(self):
-
-
         queryset = super().get_queryset()
-
-
         if not self.request.user.is_staff:
-
-
             queryset = queryset.filter(status='approved')
-
-
-        
-
-
         query = self.request.GET.get('q')
-
-
         if query:
-
-
             queryset = queryset.filter(name__icontains=query)
-
-
         return queryset
 
-
-
-
-
 class PluginDetailView(DetailView):
-
-
     model = Plugin
-
-
     template_name = 'plugins/plugin_detail.html'
-
-
-
-
-
     def get_queryset(self):
-
-
         queryset = super().get_queryset()
-
-
         if not self.request.user.is_staff:
-
-
             queryset = queryset.filter(status='approved')
-
-
         return queryset
 

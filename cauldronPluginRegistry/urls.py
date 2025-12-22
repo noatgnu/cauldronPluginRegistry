@@ -24,5 +24,5 @@ urlpatterns = [
     path('api/', include('plugins.api_urls')),
     path('api-token-auth/', views.obtain_auth_token),
     path('', home_view, name='home'),
-    path('plugins/', include('plugins.urls')),
+    path('plugins/', include('plugins.urls', namespace='plugins')),
 ]
