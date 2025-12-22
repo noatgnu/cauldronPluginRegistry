@@ -43,29 +43,28 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'django_filters',
+    'social_django', # <-- Social Auth
     'plugins',
 ]
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_USE_FINDERS = True
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.orcid.ORCIDOAuth2', # ORCID Backend
+    'django.contrib.auth.backends.ModelBackend',
+)
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-    'DEFAULT_RENDERER_CLASSES': [
-        'rest_framework.renderers.JSONRenderer',
-    ],
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 10
-}
+SOCIAL_AUTH_ORCID_KEY = config('SOCIAL_AUTH_ORCID_KEY')
+SOCIAL_AUTH_ORCID_SECRET = config('SOCIAL_AUTH_ORCID_SECRET')
+SOCIAL_AUTH_ORCID_SANDBOX = config('SOCIAL_AUTH_ORCID_SANDBOX', default=False, cast=bool) # Set to True for sandbox testing
 
+# Define SOCIAL_AUTH_ORCID_SCOPE and SOCIAL_AUTH_ORCID_AUTH_EXTRA_ARGUMENTS for required permissions and additional auth args
+# Example for full profile permissions
+SOCIAL_AUTH_ORCID_SCOPE = ['/authenticate'] # Or more if needed
+SOCIAL_AUTH_ORCID_AUTH_EXTRA_ARGUMENTS = {'response_type': 'code'}
+
+# Redirect URLs
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = 'home' # Redirect to home page after login
+LOGOUT_REDIRECT_URL = 'home' # Redirect to home page after logout
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

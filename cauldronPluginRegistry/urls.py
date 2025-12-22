@@ -26,5 +26,6 @@ urlpatterns = [
     path('', home_view, name='home'),
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', logout_view, name='logout'),
+    path('oauth/', include('social_django.urls', namespace='social')), # <-- Social Auth
     path('plugins/', include('plugins.urls')),
 ]

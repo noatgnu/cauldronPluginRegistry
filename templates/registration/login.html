@@ -10,32 +10,44 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="input-field col s12">
-                    <input id="id_username" name="username" type="text" class="validate">
+                    <input id="id_username" name="{{ form.username.name }}" type="text" class="validate" value="{{ form.username.value|default_if_none:'' }}">
                     <label for="id_username">Username</label>
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                            <span class="helper-text red-text">{{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
                 </div>
                 <div class="input-field col s12">
-                    <input id="id_password" name="password" type="password" class="validate">
+                    <input id="id_password" name="{{ form.password.name }}" type="password" class="validate">
                     <label for="id_password">Password</label>
-                </div>
-                {% if form.errors %}
-                    <div class="col s12">
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <p class="red-text">{{ error }}</p>
-                            {% endfor %}
+                    {% if form.password.errors %}
+                        {% for error in form.password.errors %}
+                            <span class="helper-text red-text">{{ error }}</span>
                         {% endfor %}
+                    {% endif %}
+                </div>
+                {% if form.non_field_errors %}
+                    <div class="col s12">
                         {% for error in form.non_field_errors %}
                             <p class="red-text">{{ error }}</p>
                         {% endfor %}
                     </div>
                 {% endif %}
-                <div class="col s12 center-align">
+                <div class="col s12 center-align" style="margin-top: 20px;">
                     <button class="btn-large waves-effect waves-light" type="submit" name="action">
                         Login
                         <i class="material-icons right">send</i>
                     </button>
                 </div>
             </form>
+            <div class="divider" style="margin: 20px 0;"></div>
+            <div class="col s12 center-align">
+                <a href="{% url 'social:begin' 'orcid' %}" class="waves-effect waves-light btn-large green darken-2">
+                    Login with ORCID
+                    <i class="material-icons right">account_circle</i>
+                </a>
+            </div>
         </div>
     </div>
 </div>
