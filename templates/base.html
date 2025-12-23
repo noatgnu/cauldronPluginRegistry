@@ -13,6 +13,37 @@
         .brand-logo { font-weight: 300; }
         .card { background-color: white; }
 
+        /* Dark mode toggle layout */
+        #nav-mobile .dark-mode-toggle-li {
+            padding: 0 15px; /* Adjust padding to match other li elements */
+            display: flex; /* Use flexbox for alignment */
+            align-items: center; /* Vertically center content */
+            height: 64px; /* Match navbar height */
+        }
+        #nav-mobile .dark-mode-toggle-li .switch label {
+            line-height: 2rem; /* Adjust line height to center the switch visually */
+            margin-bottom: 0; /* Remove default margin */
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #nav-mobile .dark-mode-toggle-li .switch label i {
+            font-size: 1.5rem; /* Standard Material Icon size */
+            height: 1.5rem;
+            line-height: 1.5rem;
+            vertical-align: middle;
+        }
+        #nav-mobile .dark-mode-toggle-li .switch .lever {
+            margin: 0; /* Remove default lever margin */
+        }
+        #nav-mobile .dark-mode-toggle-li .switch label input[type=checkbox]:checked + .lever:after {
+            background-color: #82b1ff; /* Light blue toggle for dark mode */
+        }
+        #nav-mobile .dark-mode-toggle-li .switch label .lever {
+             background-color: #9e9e9e; /* Default grey for lever */
+        }
+
+
         /* Dark Mode Styles */
         body.dark-mode { background-color: #212121; color: #fff; }
         body.dark-mode .nav-wrapper { background-color: #1a237e; /* Darker Indigo */ }
@@ -49,15 +80,17 @@
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>
                     {% endif %}
-                    <li class="valign-wrapper" style="height: 64px;">
-                        <div class="switch" style="padding-right: 15px;">
-                            <label>
-                                <i class="material-icons" style="vertical-align: middle; font-size: 1.5rem;">wb_sunny</i>
-                                <input type="checkbox" id="dark-mode-toggle">
-                                <span class="lever"></span>
-                                <i class="material-icons" style="vertical-align: middle; font-size: 1.5rem;">brightness_3</i>
-                            </label>
-                        </div>
+                    <li class="dark-mode-toggle-li">
+                        <label>
+                            <i class="material-icons">wb_sunny</i>
+                            <div class="switch">
+                                <label>
+                                    <input type="checkbox" id="dark-mode-toggle">
+                                    <span class="lever"></span>
+                                </label>
+                            </div>
+                            <i class="material-icons">brightness_3</i>
+                        </label>
                     </li>
                 </ul>
             </div>
