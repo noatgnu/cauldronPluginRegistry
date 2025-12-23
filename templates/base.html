@@ -13,6 +13,19 @@
         .brand-logo { font-weight: 300; }
         .card { background-color: white; }
 
+        /* Dark mode toggle layout */
+        .dark-mode-toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+            margin-right: 20px;
+        }
+        .dark-mode-toggle-container .switch label .material-icons {
+            font-size: 1.5rem;
+            vertical-align: middle;
+        }
+
         /* Dark Mode Styles */
         body.dark-mode { background-color: #212121; color: #fff; }
         body.dark-mode .nav-wrapper { background-color: #1a237e; /* Darker Indigo */ }
@@ -50,13 +63,15 @@
                         <li><a href="{% url 'login' %}">Login</a></li>
                     {% endif %}
                     <li>
-                        <div class="switch" style="margin-top: 15px; margin-right: 20px;">
-                            <label>
-                                <i class="material-icons" style="font-size: 1.5rem; vertical-align: middle;">wb_sunny</i>
-                                <input type="checkbox" id="dark-mode-toggle">
-                                <span class="lever"></span>
-                                <i class="material-icons" style="font-size: 1.5rem; vertical-align: middle;">brightness_3</i>
-                            </label>
+                        <div class="dark-mode-toggle-container">
+                            <i class="material-icons">wb_sunny</i>
+                            <div class="switch">
+                                <label>
+                                    <input type="checkbox" id="dark-mode-toggle">
+                                    <span class="lever"></span>
+                                </label>
+                            </div>
+                            <i class="material-icons">brightness_3</i>
                         </div>
                     </li>
                 </ul>
