@@ -38,6 +38,7 @@ class Plugin(models.Model):
     icon = models.CharField(max_length=255, blank=True, null=True)
     repository = models.URLField(blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
+    diagram_enabled = models.BooleanField(default=False) # Added diagram_enabled
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # Added submitted_by
     created_at = models.DateTimeField(auto_now_add=True)

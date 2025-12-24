@@ -3,17 +3,49 @@
 {% block title %}My Profile - Cauldron Plugin Registry{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col s12 m8 offset-m2 l6 offset-l3">
-        <div class="card-panel">
-            <h3 class="center-align" style="font-weight: 300;">My Profile</h3>
+<style>
+    .profile-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 64px - 53px);
+        padding: 20px;
+    }
+    .profile-card {
+        max-width: 600px;
+        width: 100%;
+    }
+</style>
+
+<div class="profile-wrapper">
+    <div class="card profile-card z-depth-2">
+        <div class="card-content">
+            <span class="card-title center-align" style="font-weight: 300;">My Profile</span>
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">person</i>
+                        <input id="id_username" type="text" value="{{ user.username }}" disabled>
+                        <label for="id_username" class="active">Username</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">perm_identity</i>
+                        <input id="{{ form.orcid.id_for_label }}" name="{{ form.orcid.name }}" type="text" class="validate" value="{{ form.orcid.value|default_if_none:'' }}">
+                        <label for="{{ form.orcid.id_for_label }}">ORCID iD</label>
+                        {% if form.orcid.errors %}
+                            <span class="helper-text red-text">{{ form.orcid.errors.as_text }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
                 <div class="center-align" style="margin-top: 20px;">
-                    <button class="btn waves-effect waves-light" type="submit" name="action">
-                        Update
-                        <i class="material-icons right">send</i>
+                    <button class="btn-large waves-effect waves-light" type="submit" name="action">
+                        Update Profile
+                        <i class="material-icons right">save</i>
                     </button>
                 </div>
             </form>

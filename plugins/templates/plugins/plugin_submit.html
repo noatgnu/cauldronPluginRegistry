@@ -3,22 +3,43 @@
 {% block title %}Submit Plugin - Cauldron Plugin Registry{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col s12 m8 offset-m2 l6 offset-l3">
-        <div class="card-panel z-depth-2">
-            <h3 class="center-align" style="font-weight: 300;">Submit a Plugin</h3>
+<style>
+    .submit-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 64px - 53px);
+        padding: 20px;
+    }
+    .submit-card {
+        max-width: 600px;
+        width: 100%;
+    }
+</style>
+
+<div class="submit-wrapper">
+    <div class="card submit-card z-depth-2">
+        <div class="card-content">
+            <span class="card-title center-align" style="font-weight: 300;">Submit a Plugin</span>
+            <p class="center-align grey-text" style="margin-bottom: 20px;">
+                Provide the URL to your plugin's public Git repository.
+            </p>
             <form method="post">
                 {% csrf_token %}
-                <div class="input-field col s12">
-                    {{ form.repo_url }}
-                    <label for="id_repo_url">Git Repository URL</label>
-                    {% if form.repo_url.errors %}
-                        <span class="helper-text" data-error="{{ form.repo_url.errors.as_text }}"></span>
-                    {% endif %}
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">link</i>
+                        <input id="{{ form.repo_url.id_for_label }}" name="{{ form.repo_url.name }}" type="url" class="validate" required>
+                        <label for="{{ form.repo_url.id_for_label }}">Git Repository URL</label>
+                        {% if form.repo_url.errors %}
+                            <span class="helper-text red-text">{{ form.repo_url.errors.as_text }}</span>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="col s12 center-align">
+                <div class="center-align" style="margin-top: 10px;">
                     <button class="btn-large waves-effect waves-light" type="submit" name="action">
-                        Submit
+                        Submit Plugin
                         <i class="material-icons right">send</i>
                     </button>
                 </div>
