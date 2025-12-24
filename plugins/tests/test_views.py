@@ -20,12 +20,12 @@ class TestAuth:
 class TestPluginSubmission:
     def setup_method(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.user = User.objects.create_user(username='testuser', password='testpassword', is_staff=True) # Make user staff
         self.token = Token.objects.get(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
     def test_submit_plugin_unauthenticated(self):
-        self.client.credentials() # Unset credentials
+        self.client.force_authenticate(user=None, token=None) # Properly de-authenticate
         response = self.client.post('/api/submit/', {'repo_url': 'https://github.com/noatgnu/export_asap_plugin'}, format='json')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -40,16 +40,17 @@ class TestPluginSubmission:
 class TestPluginRefresh:
     def setup_method(self):
         self.client = APIClient()
-        self.user = User.objects.create_user(username='testuser', password='testpassword')
+        self.user = User.objects.create_user(username='testuser', password='testpassword', is_staff=True) # Make user staff
         self.token = Token.objects.get(user=self.user)
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
         # First, submit the plugin to have something to refresh
-        self.client.post('/api/submit/', {'repo_url': 'https://github.com/noatgnu/export_asap_plugin'}, format='json')
+        response = self.client.post('/api/submit/', {'repo_url': 'https://github.com/noatgnu/export_asap_plugin'}, format='json')
+        assert response.status_code == status.HTTP_201_CREATED # Ensure plugin was created
         self.plugin = Plugin.objects.get(id='export-asap')
 
 
     def test_refresh_plugin_unauthenticated(self):
-        self.client.credentials() # Unset credentials
+        self.client.force_authenticate(user=None, token=None) # Properly de-authenticate
         response = self.client.post(f'/api/plugins/{self.plugin.id}/refresh/', format='json')
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 

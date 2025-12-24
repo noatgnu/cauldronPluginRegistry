@@ -15,6 +15,7 @@ import markdown
 
 class PluginSubmissionViewSet(viewsets.ViewSet):
     serializer_class = PluginSubmissionSerializer
+    permission_classes = [IsAuthenticated]
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
