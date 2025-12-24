@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, FormView
+from django.views.generic import ListView, DetailView, FormView, UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
-from .models import Plugin
+from .models import Plugin, UserProfile
 from .forms import PluginSubmitForm
 from .viewsets import PluginSubmissionViewSet
 
@@ -16,16 +17,29 @@ def logout_view(request):
     logout(request)
     return redirect('home')
 
-class PluginSubmitView(FormView):
+class UserProfileView(LoginRequiredMixin, UpdateView):
+    model = UserProfile
+    template_name = 'plugins/user_profile.html'
+    fields = ['orcid']
+    success_url = '/profile/'
+
+    def get_object(self):
+        return self.request.user.userprofile
+
+class UserPluginListView(LoginRequiredMixin, ListView):
+    model = Plugin
+    template_name = 'plugins/user_plugin_list.html'
+
+    def get_queryset(self):
+        return Plugin.objects.filter(submitted_by=self.request.user)
+
+class PluginSubmitView(LoginRequiredMixin, FormView):
     template_name = 'plugins/plugin_submit.html'
     form_class = PluginSubmitForm
-    success_url = '/plugins/' # Changed from /api/browse/ to /plugins/
+    success_url = '/plugins/'
 
     def form_valid(self, form):
-        # This is a bit of a hack, but it allows us to reuse the logic from the ViewSet
-        # A better approach would be to move the logic to a service class.
         submission_viewset = PluginSubmissionViewSet()
-        # We need to create a fake request object to pass to the ViewSet
         from django.test import RequestFactory
         factory = RequestFactory()
         request = factory.post('/api/submit/', {'repo_url': form.cleaned_data['repo_url']})

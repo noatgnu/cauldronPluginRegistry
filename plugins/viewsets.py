@@ -62,9 +62,10 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'version': plugin_info.get('version'),
                             'author': author,
                             'category': category,
+                            'subcategory': plugin_info.get('subcategory'),
                             'icon': plugin_info.get('icon'),
                             'repository': repo_url,
-                            'status': status,
+                            'status': initial_status,
                             'readme': readme_content,
                         }
                     )

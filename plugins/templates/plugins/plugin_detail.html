@@ -11,6 +11,7 @@
                 <p><strong>Version:</strong> {{ object.version }}</p>
                 <p><strong>Author:</strong> {{ object.author.name }}</p>
                 <p><strong>Category:</strong> {{ object.category.name }}</p>
+                {% if object.subcategory %}<p><strong>Subcategory:</strong> {{ object.subcategory }}</p>{% endif %}
                 <p>{{ object.description }}</p>
             </div>
             <div class="card-action">

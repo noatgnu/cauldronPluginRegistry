@@ -1,4 +1,12 @@
 from django.db import models
+from django.contrib.auth.models import User
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    orcid = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return self.user.username
 
 class Author(models.Model):
     name = models.CharField(max_length=255, unique=True)
@@ -26,10 +34,12 @@ class Plugin(models.Model):
     version = models.CharField(max_length=255)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
+    subcategory = models.CharField(max_length=255, blank=True, null=True) # Added subcategory
     icon = models.CharField(max_length=255, blank=True, null=True)
     repository = models.URLField(blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # Added submitted_by
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
