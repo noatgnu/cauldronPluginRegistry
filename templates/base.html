@@ -31,19 +31,41 @@
         body.dark-mode .nav-wrapper { background-color: #1a237e; /* Darker Indigo */ }
         body.dark-mode .page-footer { background-color: #1a237e; /* Darker Indigo */ }
         body.dark-mode .card { background-color: #424242; color: #fff; }
+        body.dark-mode .card .card-title { color: #fff; }
         body.dark-mode .card a { color: #82b1ff; } /* Light blue for links */
+        body.dark-mode .card .grey-text { color: #bbb !important; } /* Lighten grey text in cards */
+        
         body.dark-mode .input-field label { color: #fff !important; }
+        body.dark-mode .input-field .prefix { color: #fff; }
+        body.dark-mode .input-field .prefix.active { color: #82b1ff; }
+        
         body.dark-mode .input-field input[type=text]:not(.browser-default),
-        body.dark-mode .input-field input[type=password]:not(.browser-default) {
+        body.dark-mode .input-field input[type=password]:not(.browser-default),
+        body.dark-mode .input-field input[type=email]:not(.browser-default),
+        body.dark-mode .input-field input[type=url]:not(.browser-default) {
             border-bottom: 1px solid #fff;
             color: #fff;
         }
+
+        body.dark-mode .input-field input[type=text]:not(.browser-default):disabled,
+        body.dark-mode .input-field input[type=password]:not(.browser-default):disabled,
+        body.dark-mode .input-field input[type=email]:not(.browser-default):disabled,
+        body.dark-mode .input-field input[type=url]:not(.browser-default):disabled {
+            border-bottom: 1px dotted #bbb;
+            color: #bbb;
+        }
+
         body.dark-mode .input-field input[type=text].valid,
-        body.dark-mode .input-field input[type=password].valid {
+        body.dark-mode .input-field input[type=password].valid,
+        body.dark-mode .input-field input[type=email].valid,
+        body.dark-mode .input-field input[type=url].valid {
             border-bottom: 1px solid #4caf50;
         }
+
         body.dark-mode .input-field input[type=text]:focus:not([readonly]),
-        body.dark-mode .input-field input[type=password]:focus:not([readonly]) {
+        body.dark-mode .input-field input[type=password]:focus:not([readonly]),
+        body.dark-mode .input-field input[type=email]:focus:not([readonly]),
+        body.dark-mode .input-field input[type=url]:focus:not([readonly]) {
             border-bottom: 1px solid #82b1ff;
             box-shadow: 0 1px 0 0 #82b1ff;
         }
@@ -96,6 +118,23 @@
 
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Mermaid JS -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ 
+            startOnLoad: true, 
+            theme: localStorage.getItem('theme') === 'dark' ? 'dark' : 'default',
+            securityLevel: 'loose',
+        });
+        
+        // Handle theme change
+        document.getElementById('dark-mode-toggle').addEventListener('change', function() {
+            const newTheme = this.checked ? 'dark' : 'default';
+            mermaid.initialize({ theme: newTheme });
+            // Mermaid doesn't easily re-render on theme change without a reload or manual call
+            // but this is a good start.
+        });
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const darkModeToggle = document.getElementById('dark-mode-toggle');
