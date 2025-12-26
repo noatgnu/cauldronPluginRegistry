@@ -44,6 +44,7 @@ class PluginSubmitView(LoginRequiredMixin, FormView):
         factory = RequestFactory()
         request = factory.post('/api/submit/', {'repo_url': form.cleaned_data['repo_url']})
         request.user = self.request.user
+        request.data = request.POST
         response = submission_viewset.create(request)
 
         if response.status_code >= 400:

@@ -55,44 +55,18 @@
 
     <!-- Materialize JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <!-- Mermaid JS -->
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ 
-            startOnLoad: true, 
-            theme: localStorage.getItem('theme') === 'dark' ? 'dark' : 'default',
-            securityLevel: 'loose',
-        });
-        
-        // Handle theme change
-        document.getElementById('dark-mode-toggle').addEventListener('change', function() {
-            const newTheme = this.checked ? 'dark' : 'default';
-            mermaid.initialize({ theme: newTheme });
-            // Mermaid doesn't easily re-render on theme change without a reload or manual call
-            // but this is a good start.
-        });
-    </script>
+    
+    <!-- Custom Scripts -->
+    <script type="module" src="{% static 'js/scripts.js' %}"></script>
+
+    {% if messages %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const darkModeToggle = document.getElementById('dark-mode-toggle');
-            const body = document.body;
-
-            // Check for saved theme preference
-            if (localStorage.getItem('theme') === 'dark') {
-                body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
-            }
-
-            darkModeToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    body.classList.add('dark-mode');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    body.classList.remove('dark-mode');
-                    localStorage.setItem('theme', 'light');
-                }
-            });
+            {% for message in messages %}
+                M.toast({html: '{{ message|escapejs }}', classes: '{{ message.tags }}'});
+            {% endfor %}
         });
     </script>
+    {% endif %}
 </body>
 </html>
