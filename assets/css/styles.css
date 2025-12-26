@@ -1,0 +1,171 @@
+/* Global Styles from base.html */
+body { display: flex; min-height: 100vh; flex-direction: column; background-color: #f5f5f5; color: #424242; }
+main { flex: 1 0 auto; }
+.nav-wrapper { background-color: #3f51b5; /* Indigo */ }
+.page-footer { background-color: #3f51b5; /* Indigo */ padding: 10px 0;}
+.brand-logo { font-weight: 300; }
+.card { background-color: white; }
+
+/* Dark mode toggle layout */
+.dark-mode-toggle-li {
+    padding: 0 15px; /* Consistent padding */
+    display: flex;
+    align-items: center; /* Vertically center content */
+    height: 64px; /* Match navbar height */
+}
+.dark-mode-toggle-li .switch label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Dark Mode Styles */
+body.dark-mode { background-color: #212121; color: #fff; }
+body.dark-mode .nav-wrapper { background-color: #1a237e; /* Darker Indigo */ }
+body.dark-mode .page-footer { background-color: #1a237e; /* Darker Indigo */ }
+body.dark-mode .card { background-color: #424242; color: #fff; }
+body.dark-mode .card .card-title { color: #fff; }
+body.dark-mode .card a { color: #82b1ff; } /* Light blue for links */
+body.dark-mode .card .grey-text { color: #bbb !important; } /* Lighten grey text in cards */
+
+body.dark-mode .input-field label { color: #fff !important; }
+body.dark-mode .input-field .prefix { color: #fff; }
+body.dark-mode .input-field .prefix.active { color: #82b1ff; }
+
+body.dark-mode .input-field input[type=text]:not(.browser-default),
+body.dark-mode .input-field input[type=password]:not(.browser-default),
+body.dark-mode .input-field input[type=email]:not(.browser-default),
+body.dark-mode .input-field input[type=url]:not(.browser-default) {
+    border-bottom: 1px solid #fff;
+    color: #fff;
+}
+
+body.dark-mode .input-field input[type=text]:not(.browser-default):disabled,
+body.dark-mode .input-field input[type=password]:not(.browser-default):disabled,
+body.dark-mode .input-field input[type=email]:not(.browser-default):disabled,
+body.dark-mode .input-field input[type=url]:not(.browser-default):disabled {
+    border-bottom: 1px dotted #bbb;
+    color: #bbb;
+}
+
+body.dark-mode .input-field input[type=text].valid,
+body.dark-mode .input-field input[type=password].valid,
+body.dark-mode .input-field input[type=email].valid,
+body.dark-mode .input-field input[type=url].valid {
+    border-bottom: 1px solid #4caf50;
+}
+
+body.dark-mode .input-field input[type=text]:focus:not([readonly]),
+body.dark-mode .input-field input[type=password]:focus:not([readonly]),
+body.dark-mode .input-field input[type=email]:focus:not([readonly]),
+body.dark-mode .input-field input[type=url]:focus:not([readonly]) {
+    border-bottom: 1px solid #82b1ff;
+    box-shadow: 0 1px 0 0 #82b1ff;
+}
+
+/* Styles from login.html */
+/* Remove outline on focus for buttons */
+button:focus, a:focus {
+    outline: none;
+}
+.login-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px - 53px); /* Adjust for header and footer heights */
+    padding: 20px;
+}
+.login-form {
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+.login-form .input-field {
+    margin-bottom: 20px; /* Space between input fields */
+}
+.button-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* Space between buttons */
+    margin-top: 30px; /* More space above buttons */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+}
+.login-btn {
+    min-width: 180px; /* Ensure consistent button width */
+    margin-bottom: 10px; /* Add some vertical spacing if wrapped */
+}
+.orcid-btn {
+    background-color: #A6CE39 !important; /* ORCID green */
+    color: white !important;
+}
+.orcid-btn:hover {
+    background-color: #92b732 !important; /* Slightly darker ORCID green on hover */
+}
+
+/* Styles from plugin_detail.html */
+.mermaid {
+    text-align: center;
+    margin: 20px 0;
+    background: transparent !important;
+    border: none !important;
+}
+body.dark-mode .mermaid {
+    filter: brightness(0.8) contrast(1.2);
+}
+
+/* Styles from home.html */
+/* Styling specific to the home page body */
+.homepage-hero-bg {
+    background-color: #3f51b5; /* Indigo */
+    color: white;
+}
+
+/* Make header and footer truly transparent on the homepage */
+.homepage-hero-bg header, .homepage-hero-bg footer {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+.homepage-hero-bg nav {
+    background-color: transparent !important;
+    box-shadow: none !important;
+}
+.homepage-hero-bg .nav-wrapper {
+    background-color: transparent !important;
+}
+.homepage-hero-bg .brand-logo {
+    display: none; /* Hide site name on homepage */
+}
+.homepage-hero-bg .page-footer {
+    background-color: transparent !important;
+}
+.homepage-hero-bg .footer-copyright {
+    background-color: transparent !important;
+}
+
+/* Main content styling */
+.homepage-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px - 40px); /* Adjust for header and footer height */
+}
+@media only screen and (max-width : 992px) {
+    /* Adjust for smaller screens if header/footer height changes */
+    .homepage-main {
+        min-height: calc(100vh - 56px - 40px);
+    }
+}
+
+.homepage-hero-bg .input-field input[type=text]:focus + label,
+.homepage-hero-bg .input-field input[type=text]:not(.validate) + label {
+    color: white;
+}
+.homepage-hero-bg .input-field input[type=text]:focus {
+    border-bottom: 1px solid white;
+    box-shadow: 0 1px 0 0 white;
+}
+.homepage-hero-bg .input-field input[type=text].white-text {
+    border-bottom: 1px solid rgba(255,255,255,0.7);
+}

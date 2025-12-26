@@ -3,48 +3,6 @@
 {% block title %}Login - Cauldron Plugin Registry{% endblock %}
 
 {% block content %}
-<style>
-    /* Remove outline on focus for buttons */
-    button:focus, a:focus {
-        outline: none;
-    }
-    .login-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: calc(100vh - 64px - 53px); /* Adjust for header and footer heights */
-        padding: 20px;
-    }
-    .login-form {
-        max-width: 400px;
-        width: 100%;
-        text-align: center;
-    }
-    .input-field {
-        margin-bottom: 20px; /* Space between input fields */
-    }
-    .button-group {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 20px; /* Space between buttons */
-        margin-top: 30px; /* More space above buttons */
-        flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
-    }
-    .login-btn {
-        min-width: 180px; /* Ensure consistent button width */
-        margin-bottom: 10px; /* Add some vertical spacing if wrapped */
-    }
-    .orcid-btn {
-        background-color: #A6CE39 !important; /* ORCID green */
-        color: white !important;
-    }
-    .orcid-btn:hover {
-        background-color: #92b732 !important; /* Slightly darker ORCID green on hover */
-    }
-</style>
-
 <div class="login-wrapper">
     <div class="login-form">
         <h3 style="font-weight: 300;">Login</h3>

@@ -5,64 +5,8 @@
 {% block body_class %}homepage-hero-bg{% endblock %}
 
 {% block content %}
-<style>
-    /* Styling specific to the home page body */
-    .homepage-hero-bg {
-        background-color: #3f51b5; /* Indigo */
-        color: white;
-    }
-    
-    /* Make header and footer truly transparent on the homepage */
-    .homepage-hero-bg header, .homepage-hero-bg footer {
-        background-color: transparent !important;
-        box-shadow: none !important;
-    }
-    .homepage-hero-bg nav {
-        background-color: transparent !important;
-        box-shadow: none !important;
-    }
-    .homepage-hero-bg .nav-wrapper {
-        background-color: transparent !important;
-    }
-    .homepage-hero-bg .brand-logo {
-        display: none; /* Hide site name on homepage */
-    }
-    .homepage-hero-bg .page-footer {
-        background-color: transparent !important;
-    }
-    .homepage-hero-bg .footer-copyright {
-        background-color: transparent !important;
-    }
-
-    /* Main content styling */
-    main {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: calc(100vh - 64px - 40px); /* Adjust for header and footer height */
-    }
-    @media only screen and (max-width : 992px) {
-        /* Adjust for smaller screens if header/footer height changes */
-        main {
-            min-height: calc(100vh - 56px - 40px);
-        }
-    }
-
-
-    .input-field input[type=text]:focus + label,
-    .input-field input[type=text]:not(.validate) + label {
-        color: white;
-    }
-    .input-field input[type=text]:focus {
-        border-bottom: 1px solid white;
-        box-shadow: 0 1px 0 0 white;
-    }
-    .input-field input[type=text].white-text {
-        border-bottom: 1px solid rgba(255,255,255,0.7);
-    }
-</style>
-
-<div class="container">
+<div class="homepage-main">
+    <div class="container">
     <div class="row">
         <div class="col s12 m10 offset-m1 l8 offset-l2">
             <div class="center-align" style="padding: 40px; background-color: transparent !important; box-shadow: none !important; border: none !important;">
@@ -89,5 +33,6 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 {% endblock %}
