@@ -44,7 +44,7 @@
                 {% endif %}
             </div>
             <div class="card-action">
-                <a href="cauldron://install/plugin/{{ object.repository }}" class="btn waves-effect waves-light">
+                <a href="cauldron://install?repo={{ object.repository|urlencode }}{% if object.commit_hash %}&ref={{ object.commit_hash|urlencode }}{% endif %}" class="btn waves-effect waves-light">
                     Install with Cauldron
                     <i class="material-icons right">get_app</i>
                 </a>

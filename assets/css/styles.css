@@ -25,8 +25,17 @@ body.dark-mode .nav-wrapper { background-color: #1a237e; /* Darker Indigo */ }
 body.dark-mode .page-footer { background-color: #1a237e; /* Darker Indigo */ }
 body.dark-mode .card { background-color: #424242; color: #fff; }
 body.dark-mode .card .card-title { color: #fff; }
-body.dark-mode .card a { color: #82b1ff; } /* Light blue for links */
+body.dark-mode .card a:not(.btn):not(.btn-large) { color: #82b1ff; } /* Light blue for regular links, not buttons */
 body.dark-mode .card .grey-text { color: #bbb !important; } /* Lighten grey text in cards */
+
+/* Button styles for Dark Mode */
+body.dark-mode .btn, body.dark-mode .btn-large {
+    background-color: #3f51b5;
+    color: #fff !important;
+}
+body.dark-mode .btn:hover, body.dark-mode .btn-large:hover {
+    background-color: #5c6bc0;
+}
 
 body.dark-mode .input-field label { color: #fff !important; }
 body.dark-mode .input-field .prefix { color: #fff; }
@@ -61,6 +70,17 @@ body.dark-mode .input-field input[type=email]:focus:not([readonly]),
 body.dark-mode .input-field input[type=url]:focus:not([readonly]) {
     border-bottom: 1px solid #82b1ff;
     box-shadow: 0 1px 0 0 #82b1ff;
+}
+
+/* Table styles for Dark Mode */
+body.dark-mode table.striped > tbody > tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+body.dark-mode table.striped > tbody > tr {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.dark-mode thead {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* Styles from login.html */
