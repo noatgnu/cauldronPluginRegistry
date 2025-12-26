@@ -20,7 +20,7 @@ admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
 class PluginAdmin(admin.ModelAdmin):
-    list_display = ('name', 'version', 'status', 'author', 'category')
+    list_display = ('name', 'version', 'status', 'author', 'category', 'commit_hash')
     list_filter = ('status', 'category', 'author')
     list_editable = ('status',)
 

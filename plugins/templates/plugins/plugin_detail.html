@@ -20,10 +20,39 @@
             <div class="card-content">
                 <span class="card-title" style="font-weight: 300;">{{ object.name }}</span>
                 <p><strong>Version:</strong> {{ object.version }}</p>
+                {% if object.commit_hash %}<p><strong>Commit Hash:</strong> {{ object.commit_hash }}</p>{% endif %}
                 <p><strong>Author:</strong> {{ object.author.name }}</p>
                 <p><strong>Category:</strong> {{ object.category.name }}</p>
                 {% if object.subcategory %}<p><strong>Subcategory:</strong> {{ object.subcategory }}</p>{% endif %}
                 <p>{{ object.description }}</p>
+
+                {% if object.env_variables.all %}
+                <div style="margin-top: 20px;">
+                    <h6>Environment Variables</h6>
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Label</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for env in object.env_variables.all %}
+                            <tr>
+                                <td><code>{{ env.name }}</code></td>
+                                <td>{{ env.label }}</td>
+                                <td>{{ env.type }}</td>
+                                <td>{{ env.default|default:"-" }}</td>
+                                <td>{{ env.description }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
             </div>
             <div class="card-action">
                 <a href="cauldron://install/plugin/{{ object.repository }}" class="btn waves-effect waves-light">

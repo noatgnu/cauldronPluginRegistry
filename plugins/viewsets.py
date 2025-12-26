@@ -7,7 +7,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import Plugin, Author, Category
+from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer
 
 from django.conf import settings
@@ -56,6 +56,73 @@ def generate_mermaid_diagram(script_path, runtime_type):
     
     return "\n## Workflow Diagram\n\n" + "\n".join(mermaid) + "\n"
 
+def sync_plugin_components(plugin, plugin_data):
+    # Runtime
+    runtime_info = plugin_data.get('runtime', {})
+    Runtime.objects.filter(plugin=plugin).delete()
+    if runtime_info:
+        Runtime.objects.create(
+            plugin=plugin,
+            type=runtime_info.get('type', ''),
+            script=runtime_info.get('script', '')
+        )
+
+    # Inputs
+    Input.objects.filter(plugin=plugin).delete()
+    inputs_data = plugin_data.get('inputs', [])
+    for inp in inputs_data:
+        Input.objects.create(
+            plugin=plugin,
+            name=inp.get('name', ''),
+            label=inp.get('label', ''),
+            type=inp.get('type', ''),
+            required=inp.get('required', False),
+            default=str(inp.get('default', '')) if inp.get('default') is not None else None,
+            description=inp.get('description', ''),
+            placeholder=inp.get('placeholder', ''),
+            accept=inp.get('accept', ''),
+            multiple=inp.get('multiple', False),
+            sourceFile=inp.get('sourceFile', ''),
+            min=inp.get('min'),
+            max=inp.get('max'),
+            step=inp.get('step')
+        )
+
+    # Outputs
+    Output.objects.filter(plugin=plugin).delete()
+    outputs_data = plugin_data.get('outputs', [])
+    for out in outputs_data:
+        Output.objects.create(
+            plugin=plugin,
+            name=out.get('name', ''),
+            path=out.get('path', ''),
+            type=out.get('type', ''),
+            description=out.get('description', ''),
+            format=out.get('format', '')
+        )
+
+    # Env Variables
+    PluginEnvVariable.objects.filter(plugin=plugin).delete()
+    execution_info = plugin_data.get('execution', {})
+    env_vars_data = execution_info.get('envVariables', [])
+    for ev in env_vars_data:
+        PluginEnvVariable.objects.create(
+            plugin=plugin,
+            name=ev.get('name', ''),
+            label=ev.get('label', ''),
+            type=ev.get('type', ''),
+            required=ev.get('required', False),
+            default=str(ev.get('default', '')) if ev.get('default') is not None else None,
+            description=ev.get('description', ''),
+            placeholder=ev.get('placeholder', ''),
+            accept=ev.get('accept', ''),
+            multiple=ev.get('multiple', False),
+            sourceFile=ev.get('sourceFile', ''),
+            min=ev.get('min'),
+            max=ev.get('max'),
+            step=ev.get('step')
+        )
+
 class PluginSubmissionViewSet(viewsets.ViewSet):
     serializer_class = PluginSubmissionSerializer
     permission_classes = [IsAuthenticated]
@@ -66,7 +133,8 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
             repo_url = serializer.validated_data['repo_url']
             try:
                 with tempfile.TemporaryDirectory() as temp_dir:
-                    git.Repo.clone_from(repo_url, temp_dir)
+                    repo = git.Repo.clone_from(repo_url, temp_dir)
+                    commit_hash = repo.head.commit.hexsha
                     
                     plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
                     if not os.path.exists(plugin_yaml_path):
@@ -129,11 +197,15 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'subcategory': plugin_info.get('subcategory'),
                             'icon': plugin_info.get('icon'),
                             'repository': repo_url,
+                            'commit_hash': commit_hash,
                             'status': initial_status,
                             'readme': readme_content,
                             'diagram_enabled': diagram_enabled,
                         }
                     )
+                    
+                    sync_plugin_components(plugin, plugin_data)
+                    
                     return Response(PluginSerializer(plugin).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
             except git.exc.GitCommandError as e:
@@ -162,7 +234,8 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                git.Repo.clone_from(plugin.repository, temp_dir)
+                repo = git.Repo.clone_from(plugin.repository, temp_dir)
+                commit_hash = repo.head.commit.hexsha
                 
                 plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
                 if not os.path.exists(plugin_yaml_path):
@@ -215,9 +288,13 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 plugin.author = author
                 plugin.category = category
                 plugin.icon = plugin_info.get('icon')
+                plugin.commit_hash = commit_hash
                 plugin.readme = readme_content
                 plugin.diagram_enabled = diagram_enabled
                 plugin.save()
+                
+                sync_plugin_components(plugin, plugin_data)
+                
                 return Response(PluginSerializer(plugin).data, status=status.HTTP_200_OK)
 
         except git.exc.GitCommandError as e:

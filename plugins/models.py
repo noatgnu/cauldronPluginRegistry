@@ -37,6 +37,7 @@ class Plugin(models.Model):
     subcategory = models.CharField(max_length=255, blank=True, null=True) # Added subcategory
     icon = models.CharField(max_length=255, blank=True, null=True)
     repository = models.URLField(blank=True, null=True)
+    commit_hash = models.CharField(max_length=255, blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
     diagram_enabled = models.BooleanField(default=False) # Added diagram_enabled
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
@@ -97,3 +98,24 @@ class Output(models.Model):
 
     def __str__(self):
         return self.name
+
+class PluginEnvVariable(models.Model):
+    plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='env_variables')
+    name = models.CharField(max_length=255)
+    label = models.CharField(max_length=255)
+    type = models.CharField(max_length=50)
+    required = models.BooleanField(default=False)
+    default = models.CharField(max_length=255, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    placeholder = models.CharField(max_length=255, blank=True, null=True)
+    accept = models.CharField(max_length=255, blank=True, null=True)
+    multiple = models.BooleanField(default=False)
+    sourceFile = models.CharField(max_length=255, blank=True, null=True)
+    min = models.FloatField(blank=True, null=True)
+    max = models.FloatField(blank=True, null=True)
+    step = models.FloatField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
+    

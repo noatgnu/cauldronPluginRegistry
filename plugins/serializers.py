@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Plugin, Author, Category, Tag, Runtime, Input, Output
+from .models import Plugin, Author, Category, Tag, Runtime, Input, Output, PluginEnvVariable
 
 class PluginSubmissionSerializer(serializers.Serializer):
     repo_url = serializers.URLField()
@@ -34,6 +34,11 @@ class OutputSerializer(serializers.ModelSerializer):
         model = Output
         fields = '__all__'
 
+class PluginEnvVariableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PluginEnvVariable
+        fields = '__all__'
+
 class PluginSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()
     category = CategorySerializer()
@@ -41,6 +46,7 @@ class PluginSerializer(serializers.ModelSerializer):
     runtime = RuntimeSerializer()
     inputs = InputSerializer(many=True)
     outputs = OutputSerializer(many=True)
+    env_variables = PluginEnvVariableSerializer(many=True)
 
     class Meta:
         model = Plugin
