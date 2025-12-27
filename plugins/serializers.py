@@ -20,9 +20,14 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RuntimeSerializer(serializers.ModelSerializer):
+    normalized_environments = serializers.SerializerMethodField()
+
     class Meta:
         model = Runtime
         fields = '__all__'
+
+    def get_normalized_environments(self, obj):
+        return obj.get_environments()
 
 class InputSerializer(serializers.ModelSerializer):
     class Meta:
@@ -38,6 +43,15 @@ class PluginEnvVariableSerializer(serializers.ModelSerializer):
     class Meta:
         model = PluginEnvVariable
         fields = '__all__'
+
+class PluginUpdateInfoSerializer(serializers.Serializer):
+    plugin_id = serializers.CharField()
+    current_commit = serializers.CharField()
+    latest_commit = serializers.CharField()
+    recommended_commit = serializers.CharField()
+    latest_stable_tag = serializers.CharField(allow_null=True)
+    has_update = serializers.BooleanField()
+    changelog_url = serializers.URLField(allow_null=True)
 
 class PluginSerializer(serializers.ModelSerializer):
     author = AuthorSerializer()

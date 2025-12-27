@@ -34,14 +34,16 @@ class Plugin(models.Model):
     version = models.CharField(max_length=255)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    subcategory = models.CharField(max_length=255, blank=True, null=True) # Added subcategory
+    subcategory = models.CharField(max_length=255, blank=True, null=True)
     icon = models.CharField(max_length=255, blank=True, null=True)
     repository = models.URLField(blank=True, null=True)
     commit_hash = models.CharField(max_length=255, blank=True, null=True)
+    recommended_commit = models.CharField(max_length=255, blank=True, null=True)
+    latest_stable_tag = models.CharField(max_length=255, blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
-    diagram_enabled = models.BooleanField(default=False) # Added diagram_enabled
+    diagram_enabled = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) # Added submitted_by
+    submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -63,11 +65,26 @@ class PluginTag(models.Model):
 
 class Runtime(models.Model):
     plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='runtime')
-    type = models.CharField(max_length=50)
+    type = models.CharField(max_length=50, blank=True, null=True)
+    environments = models.JSONField(blank=True, null=True, default=list)
     script = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.plugin.name} - {self.type}"
+        if self.environments:
+            return f"{self.plugin.name} - {', '.join(self.environments)}"
+        return f"{self.plugin.name} - {self.type or 'unknown'}"
+
+    def get_environments(self):
+        if self.environments and len(self.environments) > 0:
+            return self.environments
+
+        if self.type == 'pythonWithR':
+            return ['python', 'r']
+
+        if self.type:
+            return [self.type]
+
+        return []
 
 class Input(models.Model):
     plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='inputs')

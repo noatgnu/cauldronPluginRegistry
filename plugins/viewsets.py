@@ -9,27 +9,36 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer
+from .permissions import IsOwnerOrAdmin
 
 from django.conf import settings
 import markdown
 import re
 
-def generate_mermaid_diagram(script_path, runtime_type):
+def get_primary_environment(runtime_info):
+    environments = runtime_info.get('environments', [])
+    if environments and len(environments) > 0:
+        return environments[0]
+    return ''
+
+def generate_mermaid_diagram(script_path, runtime_info):
     if not os.path.exists(script_path):
         return ""
-    
+
     try:
         with open(script_path, 'r') as f:
             content = f.read()
     except Exception:
         return ""
-    
+
     lines = content.split('\n')
     steps = []
-    
-    if runtime_type == 'r':
+
+    primary_env = get_primary_environment(runtime_info)
+
+    if primary_env == 'r':
         pattern = re.compile(r'message\(.*\[(\d+)/(\d+)\]\s*(.+?)["\')]')
-    elif runtime_type == 'python':
+    elif primary_env == 'python':
         pattern = re.compile(r'(?:print|logger\.info)\(.*\[(\d+)/(\d+)\]\s*(.+?)["\')]')
     else:
         return ""
@@ -63,7 +72,7 @@ def sync_plugin_components(plugin, plugin_data):
     if runtime_info:
         Runtime.objects.create(
             plugin=plugin,
-            type=runtime_info.get('type', ''),
+            environments=runtime_info.get('environments', []),
             script=runtime_info.get('script', '')
         )
 
@@ -174,10 +183,9 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                     if diagram_enabled and "```mermaid" not in raw_readme:
                         runtime_info = plugin_data.get('runtime', {})
                         script_name = runtime_info.get('script')
-                        runtime_type = runtime_info.get('type')
-                        if script_name and runtime_type:
+                        if script_name and runtime_info:
                             script_path = os.path.join(temp_dir, script_name)
-                            diagram_md = generate_mermaid_diagram(script_path, runtime_type)
+                            diagram_md = generate_mermaid_diagram(script_path, runtime_info)
                             raw_readme += diagram_md
 
                     readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
@@ -201,6 +209,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'status': initial_status,
                             'readme': readme_content,
                             'diagram_enabled': diagram_enabled,
+                            'submitted_by': request.user if created else plugin.submitted_by,
                         }
                     )
                     
@@ -226,9 +235,66 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
             queryset = queryset.filter(status='approved')
         return queryset
 
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['get'], permission_classes=[AllowAny])
+    def check_update(self, request, pk=None):
+        plugin = self.get_object()
+        if not plugin.repository:
+            return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                repo = git.Repo.clone_from(plugin.repository, temp_dir, depth=1)
+                latest_commit = repo.head.commit.hexsha
+
+                tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
+                latest_tag = tags[0].name if tags else None
+
+                recommended = plugin.recommended_commit if plugin.recommended_commit else latest_commit
+
+                has_update = recommended != plugin.commit_hash
+
+                return Response({
+                    'plugin_id': plugin.id,
+                    'current_commit': plugin.commit_hash,
+                    'latest_commit': latest_commit,
+                    'recommended_commit': recommended,
+                    'latest_stable_tag': latest_tag,
+                    'has_update': has_update,
+                    'changelog_url': f"{plugin.repository}/compare/{plugin.commit_hash}...{recommended}" if has_update else None
+                }, status=status.HTTP_200_OK)
+
+        except git.exc.GitCommandError as e:
+            return Response({'error': f'Failed to check repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
+    def set_recommended_commit(self, request, pk=None):
+        plugin = self.get_object()
+
+        if not request.user.is_staff and plugin.submitted_by != request.user:
+            return Response({'error': 'You do not have permission to modify this plugin'}, status=status.HTTP_403_FORBIDDEN)
+
+        commit_hash = request.data.get('commit_hash')
+
+        if not commit_hash:
+            return Response({'error': 'commit_hash is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        plugin.recommended_commit = commit_hash
+        plugin.save()
+
+        return Response({
+            'plugin_id': plugin.id,
+            'recommended_commit': plugin.recommended_commit
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
     def refresh(self, request, pk=None):
         plugin = self.get_object()
+
+        if not request.user.is_staff and plugin.submitted_by != request.user:
+            return Response({'error': 'You do not have permission to modify this plugin'}, status=status.HTTP_403_FORBIDDEN)
+
         if not plugin.repository:
             return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -270,10 +336,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 if diagram_enabled and "```mermaid" not in raw_readme:
                     runtime_info = plugin_data.get('runtime', {})
                     script_name = runtime_info.get('script')
-                    runtime_type = runtime_info.get('type')
-                    if script_name and runtime_type:
+                    if script_name and runtime_info:
                         script_path = os.path.join(temp_dir, script_name)
-                        diagram_md = generate_mermaid_diagram(script_path, runtime_type)
+                        diagram_md = generate_mermaid_diagram(script_path, runtime_info)
                         raw_readme += diagram_md
 
                 readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
@@ -299,6 +364,126 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
 
         except git.exc.GitCommandError as e:
             return Response({'error': f'Failed to clone repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def my_plugins(self, request):
+        plugins = Plugin.objects.filter(submitted_by=request.user)
+        serializer = self.get_serializer(plugins, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
+    def check_my_update(self, request, pk=None):
+        plugin = self.get_object()
+
+        if not request.user.is_staff and plugin.submitted_by != request.user:
+            return Response({'error': 'You do not have permission to check updates for this plugin'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not plugin.repository:
+            return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                repo = git.Repo.clone_from(plugin.repository, temp_dir, depth=1)
+                latest_commit = repo.head.commit.hexsha
+
+                tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
+                latest_tag = tags[0].name if tags else None
+
+                has_update = latest_commit != plugin.commit_hash
+
+                return Response({
+                    'plugin_id': plugin.id,
+                    'current_commit': plugin.commit_hash,
+                    'latest_commit': latest_commit,
+                    'latest_stable_tag': latest_tag,
+                    'has_update': has_update,
+                    'recommended_commit': plugin.recommended_commit,
+                }, status=status.HTTP_200_OK)
+
+        except git.exc.GitCommandError as e:
+            return Response({'error': f'Failed to check repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
+    def sync_to_latest(self, request, pk=None):
+        plugin = self.get_object()
+
+        if not request.user.is_staff and plugin.submitted_by != request.user:
+            return Response({'error': 'You do not have permission to sync this plugin'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not plugin.repository:
+            return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                repo = git.Repo.clone_from(plugin.repository, temp_dir)
+                latest_commit = repo.head.commit.hexsha
+
+                tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
+                latest_tag = tags[0].name if tags else None
+
+                plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                if not os.path.exists(plugin_yaml_path):
+                    return Response({'error': 'plugin.yaml not found in the repository.'}, status=status.HTTP_400_BAD_REQUEST)
+
+                with open(plugin_yaml_path, 'r') as f:
+                    plugin_data = yaml.safe_load(f)
+
+                plugin_info = plugin_data.get('plugin', {})
+
+                author_name = plugin_info.get('author')
+                author = None
+                if author_name:
+                    author, _ = Author.objects.get_or_create(name=author_name)
+
+                category_name = plugin_info.get('category')
+                category = None
+                if category_name:
+                    category, _ = Category.objects.get_or_create(name=category_name)
+
+                diagram_config = plugin_data.get('diagram', {})
+                diagram_enabled = diagram_config.get('enabled', False)
+
+                readme_path = os.path.join(temp_dir, 'README.md')
+                raw_readme = ""
+                if os.path.exists(readme_path):
+                    with open(readme_path, 'r') as f:
+                        raw_readme = f.read()
+
+                if diagram_enabled and "```mermaid" not in raw_readme:
+                    runtime_info = plugin_data.get('runtime', {})
+                    script_name = runtime_info.get('script')
+                    if script_name and runtime_info:
+                        script_path = os.path.join(temp_dir, script_name)
+                        diagram_md = generate_mermaid_diagram(script_path, runtime_info)
+                        raw_readme += diagram_md
+
+                readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
+
+                mermaid_pattern = re.compile(r'<pre><code class="language-mermaid">([\s\S]*?)</code></pre>')
+                readme_content = mermaid_pattern.sub(r'<pre class="mermaid">\1</pre>', readme_content)
+
+                plugin.name = plugin_info.get('name')
+                plugin.description = plugin_info.get('description')
+                plugin.version = plugin_info.get('version')
+                plugin.author = author
+                plugin.category = category
+                plugin.icon = plugin_info.get('icon')
+                plugin.commit_hash = latest_commit
+                plugin.latest_stable_tag = latest_tag
+                plugin.readme = readme_content
+                plugin.diagram_enabled = diagram_enabled
+                plugin.save()
+
+                sync_plugin_components(plugin, plugin_data)
+
+                return Response(PluginSerializer(plugin).data, status=status.HTTP_200_OK)
+
+        except git.exc.GitCommandError as e:
+            return Response({'error': f'Failed to sync repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

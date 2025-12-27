@@ -44,10 +44,29 @@
                 {% endif %}
             </div>
             <div class="card-action">
-                <a href="cauldron://install?repo={{ object.repository|urlencode }}{% if object.commit_hash %}&ref={{ object.commit_hash|urlencode }}{% endif %}" class="btn waves-effect waves-light">
+                {% with registry_url=request.scheme|add:"://"|add:request.get_host|add:"/api" %}
+                <a href="cauldron://install?repo={{ object.repository|urlencode }}{% if object.commit_hash %}&ref={{ object.commit_hash|urlencode }}{% endif %}&registry={{ registry_url|urlencode }}" class="btn waves-effect waves-light">
                     Install with Cauldron
                     <i class="material-icons right">get_app</i>
                 </a>
+                {% endwith %}
+                {% if user.is_authenticated and object.submitted_by == user %}
+                    <div style="margin-top: 15px;">
+                        <strong>Owner Actions:</strong>
+                        <div id="owner-actions">
+                            {% if object.recommended_commit %}
+                                <p><strong>Recommended Commit:</strong> <code id="rec-commit">{{ object.recommended_commit|slice:":7" }}</code></p>
+                            {% endif %}
+                            <div style="margin-top: 10px;">
+                                <input type="text" id="new-recommended-commit" placeholder="New recommended commit hash" style="max-width: 300px; display: inline-block; margin-right: 10px;">
+                                <a href="#" onclick="setRecommendedCommit(); return false;" class="btn-small waves-effect waves-light orange">
+                                    <i class="material-icons left">bookmark</i>Set Recommended
+                                </a>
+                            </div>
+                            <div id="action-status" style="margin-top: 10px;"></div>
+                        </div>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -66,4 +85,57 @@
         </div>
     </div>
 </div>
+
+{% if user.is_authenticated and object.submitted_by == user %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function setRecommendedCommit() {
+        const commitHash = document.getElementById('new-recommended-commit').value;
+        if (!commitHash) {
+            M.toast({html: 'Please enter a commit hash', classes: 'red'});
+            return;
+        }
+
+        const statusDiv = document.getElementById('action-status');
+        statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
+
+        fetch('/api/plugins/{{ object.pk }}/set_recommended_commit/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ commit_hash: commitHash })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${data.error}</div>`;
+            } else {
+                statusDiv.innerHTML = `<div class="chip green lighten-4">Recommended commit set successfully!</div>`;
+                document.getElementById('rec-commit').textContent = data.recommended_commit.substring(0, 7);
+                document.getElementById('new-recommended-commit').value = '';
+                M.toast({html: 'Recommended commit updated!', classes: 'green'});
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
+        });
+    }
+</script>
+{% endif %}
 {% endblock %}
