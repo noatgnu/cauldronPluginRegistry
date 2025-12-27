@@ -4,124 +4,42 @@
 
 {% block content %}
     <h2 style="font-weight: 300;">My Submitted Plugins</h2>
+    
     <div class="row">
-    {% for plugin in object_list %}
-        <div class="col s12 m6 l4">
-            <div class="card hoverable" id="plugin-card-{{ plugin.pk }}">
-                <div class="card-content">
-                    <span class="card-title"><a href="{% url 'plugin-detail' plugin.pk %}">{{ plugin.name }}</a></span>
-                    <p><strong>Status:</strong> {{ plugin.get_status_display }}</p>
-                    <p><strong>Version:</strong> {{ plugin.version }}</p>
-                    {% if plugin.commit_hash %}
-                        <p><strong>Current Commit:</strong> <code>{{ plugin.commit_hash|slice:":7" }}</code></p>
-                    {% endif %}
-                    {% if plugin.recommended_commit %}
-                        <p><strong>Recommended:</strong> <code>{{ plugin.recommended_commit|slice:":7" }}</code></p>
-                    {% endif %}
-                    <div id="update-status-{{ plugin.pk }}" class="update-status"></div>
-                </div>
-                <div class="card-action">
-                    <a href="{% url 'plugin-detail' plugin.pk %}">View Details</a>
-                    {% if plugin.repository %}
-                        <a href="#" onclick="checkUpdate('{{ plugin.pk }}'); return false;" class="waves-effect waves-light btn-small">
-                            <i class="material-icons left">refresh</i>Check Update
-                        </a>
-                        <a href="#" onclick="syncToLatest('{{ plugin.pk }}'); return false;" class="waves-effect waves-light btn-small green">
-                            <i class="material-icons left">sync</i>Sync
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    {% empty %}
         <div class="col s12">
-            <p>You have not submitted any plugins yet.</p>
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Version</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for plugin in object_list %}
+                    <tr>
+                        <td><a href="{% url 'plugin-detail' plugin.pk %}">{{ plugin.name }}</a></td>
+                        <td>{{ plugin.description|truncatechars:100 }}</td>
+                        <td>{{ plugin.author.name }}</td>
+                        <td>{{ plugin.category.name }}</td>
+                        <td>{{ plugin.version }}</td>
+                        <td>{{ plugin.get_status_display }}</td>
+                        <td>
+                            <a href="{% url 'plugin-detail' plugin.pk %}" class="btn-small waves-effect waves-light">View</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="center-align">You have not submitted any plugins yet.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
-    {% endfor %}
     </div>
-
-    <script>
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-
-        function checkUpdate(pluginId) {
-            const statusDiv = document.getElementById(`update-status-${pluginId}`);
-            statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
-
-            fetch(`/api/plugins/${pluginId}/check_my_update/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.has_update) {
-                    statusDiv.innerHTML = `
-                        <div class="chip green lighten-4">
-                            <i class="material-icons tiny">update</i>
-                            Update Available: ${data.latest_commit.substring(0, 7)}
-                        </div>
-                    `;
-                } else {
-                    statusDiv.innerHTML = `
-                        <div class="chip blue lighten-4">
-                            <i class="material-icons tiny">check_circle</i>
-                            Up to date
-                        </div>
-                    `;
-                }
-            })
-            .catch(error => {
-                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
-            });
-        }
-
-        function syncToLatest(pluginId) {
-            if (!confirm('This will update the plugin to the latest commit from the repository. Continue?')) {
-                return;
-            }
-
-            const statusDiv = document.getElementById(`update-status-${pluginId}`);
-            statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
-
-            fetch(`/api/plugins/${pluginId}/sync_to_latest/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${data.error}</div>`;
-                } else {
-                    statusDiv.innerHTML = `
-                        <div class="chip green lighten-4">
-                            <i class="material-icons tiny">check_circle</i>
-                            Synced to ${data.commit_hash.substring(0, 7)}
-                        </div>
-                    `;
-                    setTimeout(() => location.reload(), 2000);
-                }
-            })
-            .catch(error => {
-                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
-            });
-        }
-    </script>
 {% endblock %}
+

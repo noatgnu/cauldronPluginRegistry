@@ -29,11 +29,11 @@ body.dark-mode .card a:not(.btn):not(.btn-large) { color: #82b1ff; } /* Light bl
 body.dark-mode .card .grey-text { color: #bbb !important; } /* Lighten grey text in cards */
 
 /* Button styles for Dark Mode */
-body.dark-mode .btn, body.dark-mode .btn-large {
+body.dark-mode .btn, body.dark-mode .btn-large, body.dark-mode .btn-small {
     background-color: #3f51b5;
     color: #fff !important;
 }
-body.dark-mode .btn:hover, body.dark-mode .btn-large:hover {
+body.dark-mode .btn:hover, body.dark-mode .btn-large:hover, body.dark-mode .btn-small:hover {
     background-color: #5c6bc0;
 }
 
