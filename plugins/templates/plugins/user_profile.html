@@ -36,6 +36,18 @@
                 </div>
             </div>
         </form>
+
+        <div class="divider" style="margin: 40px 0;"></div>
+
+        <div class="row">
+            <div class="col s12">
+                <h5 style="font-weight: 300;">Repository Access</h5>
+                <p>Manage SSH keys for accessing private repositories</p>
+                <a href="{% url 'ssh-key-list' %}" class="btn waves-effect waves-light">
+                    <i class="material-icons left">vpn_key</i>Manage SSH Keys
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

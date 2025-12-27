@@ -23,7 +23,8 @@ dependencies = [
     "social-auth-app-django (>=5.7.0,<6.0.0)",
     "psycopg2-binary (>=2.9.11,<3.0.0)",
     "django-dbbackup (>=5.1.0,<6.0.0)",
-    "djangorestframework-stubs (>=3.16.6,<4.0.0)"
+    "djangorestframework-stubs (>=3.16.6,<4.0.0)",
+    "cryptography (>=46.0.3,<47.0.0)",
 ]
 
 

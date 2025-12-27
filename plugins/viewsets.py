@@ -2,18 +2,77 @@ import tempfile
 import git
 import yaml
 import os
+import stat
 
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable
+from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable, RepositorySSHKey
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer
 from .permissions import IsOwnerOrAdmin
 
 from django.conf import settings
 import markdown
 import re
+
+def normalize_repo_url(repo_url):
+    if repo_url.startswith('git@'):
+        repo_url = repo_url.replace(':', '/', 1).replace('git@', 'ssh://git@')
+    return repo_url
+
+def check_repo_requires_auth(repo_url):
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            git.Repo.clone_from(repo_url, temp_dir, depth=1)
+            return False
+    except git.exc.GitCommandError as e:
+        error_message = str(e).lower()
+        if any(keyword in error_message for keyword in ['authentication', 'permission denied', 'could not read', 'fatal: could not read from remote repository']):
+            return True
+        raise
+    except Exception:
+        raise
+
+def setup_git_ssh_auth(repo_url, user):
+    normalized_url = normalize_repo_url(repo_url)
+
+    try:
+        ssh_key = RepositorySSHKey.objects.filter(
+            user=user,
+            repository_url__in=[repo_url, normalized_url]
+        ).first()
+
+        if not ssh_key:
+            alt_url = repo_url.replace('ssh://git@', 'git@').replace('/', ':', 1) if 'ssh://' in repo_url else repo_url
+            ssh_key = RepositorySSHKey.objects.filter(
+                user=user,
+                repository_url=alt_url
+            ).first()
+
+        if ssh_key:
+            ssh_key_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.key')
+            ssh_key_file.write(ssh_key.ssh_private_key)
+            ssh_key_file.close()
+
+            os.chmod(ssh_key_file.name, stat.S_IRUSR | stat.S_IWUSR)
+
+            ssh_command = f'ssh -i {ssh_key_file.name} -o StrictHostKeyChecking=no'
+            if ssh_key.passphrase:
+                ssh_command = f'sshpass -p "{ssh_key.passphrase}" {ssh_command}'
+
+            return ssh_command, ssh_key_file.name
+    except Exception:
+        pass
+
+    return None, None
+
+def cleanup_ssh_key_file(ssh_key_file_path):
+    if ssh_key_file_path and os.path.exists(ssh_key_file_path):
+        try:
+            os.unlink(ssh_key_file_path)
+        except Exception:
+            pass
 
 def get_primary_environment(runtime_info):
     environments = runtime_info.get('environments', [])
@@ -140,9 +199,22 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
             repo_url = serializer.validated_data['repo_url']
+            ssh_key_file_path = None
+            requires_auth = False
+
             try:
+                requires_auth = check_repo_requires_auth(repo_url)
+            except Exception as e:
+                pass
+
+            try:
+                ssh_command, ssh_key_file_path = setup_git_ssh_auth(repo_url, request.user)
+                env = os.environ.copy()
+                if ssh_command:
+                    env['GIT_SSH_COMMAND'] = ssh_command
+
                 with tempfile.TemporaryDirectory() as temp_dir:
-                    repo = git.Repo.clone_from(repo_url, temp_dir)
+                    repo = git.Repo.clone_from(repo_url, temp_dir, env=env)
                     commit_hash = repo.head.commit.hexsha
                     
                     plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
@@ -209,6 +281,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'status': initial_status,
                             'readme': readme_content,
                             'diagram_enabled': diagram_enabled,
+                            'requires_authentication': requires_auth,
                             'submitted_by': request.user if created else plugin.submitted_by,
                         }
                     )
@@ -221,6 +294,8 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                 return Response({'error': f'Failed to clone repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
                 return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            finally:
+                cleanup_ssh_key_file(ssh_key_file_path)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -298,9 +373,15 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
         if not plugin.repository:
             return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        ssh_key_file_path = None
         try:
+            ssh_command, ssh_key_file_path = setup_git_ssh_auth(plugin.repository, request.user)
+            env = os.environ.copy()
+            if ssh_command:
+                env['GIT_SSH_COMMAND'] = ssh_command
+
             with tempfile.TemporaryDirectory() as temp_dir:
-                repo = git.Repo.clone_from(plugin.repository, temp_dir)
+                repo = git.Repo.clone_from(plugin.repository, temp_dir, env=env)
                 commit_hash = repo.head.commit.hexsha
                 
                 plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
@@ -366,6 +447,8 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': f'Failed to clone repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            cleanup_ssh_key_file(ssh_key_file_path)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def my_plugins(self, request):
@@ -383,9 +466,15 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
         if not plugin.repository:
             return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        ssh_key_file_path = None
         try:
+            ssh_command, ssh_key_file_path = setup_git_ssh_auth(plugin.repository, request.user)
+            env = os.environ.copy()
+            if ssh_command:
+                env['GIT_SSH_COMMAND'] = ssh_command
+
             with tempfile.TemporaryDirectory() as temp_dir:
-                repo = git.Repo.clone_from(plugin.repository, temp_dir, depth=1)
+                repo = git.Repo.clone_from(plugin.repository, temp_dir, depth=1, env=env)
                 latest_commit = repo.head.commit.hexsha
 
                 tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
@@ -406,6 +495,8 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': f'Failed to check repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            cleanup_ssh_key_file(ssh_key_file_path)
 
     @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated, IsOwnerOrAdmin])
     def sync_to_latest(self, request, pk=None):
@@ -417,9 +508,15 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
         if not plugin.repository:
             return Response({'error': 'Plugin has no repository URL.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        ssh_key_file_path = None
         try:
+            ssh_command, ssh_key_file_path = setup_git_ssh_auth(plugin.repository, request.user)
+            env = os.environ.copy()
+            if ssh_command:
+                env['GIT_SSH_COMMAND'] = ssh_command
+
             with tempfile.TemporaryDirectory() as temp_dir:
-                repo = git.Repo.clone_from(plugin.repository, temp_dir)
+                repo = git.Repo.clone_from(plugin.repository, temp_dir, env=env)
                 latest_commit = repo.head.commit.hexsha
 
                 tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
@@ -486,6 +583,8 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({'error': f'Failed to sync repository: {e}'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': f'An unexpected error occurred: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        finally:
+            cleanup_ssh_key_file(ssh_key_file_path)
 
 
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):

@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, FormView, UpdateView
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, DetailView, FormView, UpdateView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
-from .models import Plugin, UserProfile
-from .forms import PluginSubmitForm
+from django.contrib import messages
+from django.urls import reverse_lazy
+from .models import Plugin, UserProfile, RepositorySSHKey
+from .forms import PluginSubmitForm, SSHKeyForm
 from .viewsets import PluginSubmissionViewSet
 
 def home_view(request):
@@ -75,3 +77,34 @@ class PluginDetailView(DetailView):
         if not self.request.user.is_staff:
             queryset = queryset.filter(status='approved')
         return queryset
+
+class SSHKeyListView(LoginRequiredMixin, ListView):
+    model = RepositorySSHKey
+    template_name = 'plugins/ssh_key_list.html'
+    context_object_name = 'ssh_keys'
+
+    def get_queryset(self):
+        return RepositorySSHKey.objects.filter(user=self.request.user)
+
+class SSHKeyCreateView(LoginRequiredMixin, CreateView):
+    model = RepositorySSHKey
+    form_class = SSHKeyForm
+    template_name = 'plugins/ssh_key_form.html'
+    success_url = reverse_lazy('ssh-key-list')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        messages.success(self.request, 'SSH key added successfully!')
+        return super().form_valid(form)
+
+class SSHKeyDeleteView(LoginRequiredMixin, DeleteView):
+    model = RepositorySSHKey
+    template_name = 'plugins/ssh_key_confirm_delete.html'
+    success_url = reverse_lazy('ssh-key-list')
+
+    def get_queryset(self):
+        return RepositorySSHKey.objects.filter(user=self.request.user)
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'SSH key deleted successfully!')
+        return super().delete(request, *args, **kwargs)

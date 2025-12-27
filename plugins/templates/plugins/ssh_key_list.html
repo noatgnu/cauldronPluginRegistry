@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}SSH Keys - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12">
+        <h2 style="font-weight: 300;">SSH Keys</h2>
+        <p>Manage SSH keys for accessing private repositories</p>
+
+        <div style="margin-bottom: 20px;">
+            <a href="{% url 'ssh-key-create' %}" class="btn waves-effect waves-light">
+                <i class="material-icons left">add</i>Add SSH Key
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="card-panel {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <table class="striped responsive-table">
+            <thead>
+                <tr>
+                    <th>Repository URL</th>
+                    <th>Created At</th>
+                    <th>Updated At</th>
+                    <th>Has Passphrase</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for ssh_key in ssh_keys %}
+                <tr>
+                    <td><code>{{ ssh_key.repository_url }}</code></td>
+                    <td>{{ ssh_key.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>{{ ssh_key.updated_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if ssh_key.passphrase %}
+                            <i class="material-icons">check</i>
+                        {% else %}
+                            <i class="material-icons">close</i>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'ssh-key-delete' ssh_key.pk %}" class="btn-small red waves-effect waves-light">
+                            <i class="material-icons left">delete</i>Delete
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="center-align">No SSH keys found. Add one to access private repositories.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

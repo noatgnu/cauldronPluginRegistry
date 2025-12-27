@@ -44,7 +44,7 @@
                 {% endif %}
             </div>
             <div class="card-action">
-                {% with registry_url=request.scheme|add:"://"|add:request.get_host|add:"/api" %}
+                {% with registry_url=request.scheme|add:"://"|add:request.get_host %}
                 <a href="cauldron://install?repo={{ object.repository|urlencode }}{% if object.commit_hash %}&ref={{ object.commit_hash|urlencode }}{% endif %}&registry={{ registry_url|urlencode }}" class="btn waves-effect waves-light">
                     Install with Cauldron
                     <i class="material-icons right">get_app</i>

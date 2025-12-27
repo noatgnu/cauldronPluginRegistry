@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Add SSH Key - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col s12">
+        <h2 style="font-weight: 300;">Add SSH Key</h2>
+
+        <div class="card">
+            <div class="card-content">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="input-field col s12">
+                            {{ form.repository_url }}
+                            <label for="{{ form.repository_url.id_for_label }}">{{ form.repository_url.label }}</label>
+                            {% if form.repository_url.errors %}
+                                <span class="helper-text red-text">{{ form.repository_url.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-field col s12">
+                            {{ form.ssh_private_key }}
+                            <label for="{{ form.ssh_private_key.id_for_label }}">{{ form.ssh_private_key.label }}</label>
+                            <span class="helper-text">Paste the contents of your SSH private key file (e.g., id_rsa)</span>
+                            {% if form.ssh_private_key.errors %}
+                                <span class="helper-text red-text">{{ form.ssh_private_key.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-field col s12">
+                            {{ form.passphrase }}
+                            <label for="{{ form.passphrase.id_for_label }}">{{ form.passphrase.label }}</label>
+                            <span class="helper-text">Only required if your SSH key is password-protected</span>
+                            {% if form.passphrase.errors %}
+                                <span class="helper-text red-text">{{ form.passphrase.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-panel yellow lighten-4">
+                        <i class="material-icons left">warning</i>
+                        <strong>Security Note:</strong> Your SSH key will be stored securely in the database.
+                        Only you can access your keys. The key will be used to clone and update private repositories.
+                    </div>
+
+                    <div class="row">
+                        <div class="col s12">
+                            <button type="submit" class="btn waves-effect waves-light">
+                                <i class="material-icons left">save</i>Save SSH Key
+                            </button>
+                            <a href="{% url 'ssh-key-list' %}" class="btn-flat">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        M.updateTextFields();
+    });
+</script>
+{% endblock %}

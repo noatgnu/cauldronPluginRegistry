@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .encrypted_fields import EncryptedTextField, EncryptedCharField
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -42,6 +43,7 @@ class Plugin(models.Model):
     latest_stable_tag = models.CharField(max_length=255, blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
     diagram_enabled = models.BooleanField(default=False)
+    requires_authentication = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -134,5 +136,18 @@ class PluginEnvVariable(models.Model):
 
     def __str__(self):
         return self.name
-    
-    
+
+class RepositorySSHKey(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ssh_keys')
+    repository_url = models.CharField(max_length=500)
+    ssh_private_key = EncryptedTextField()
+    passphrase = EncryptedCharField(max_length=1024, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'repository_url')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.repository_url}"
+
