@@ -68,26 +68,13 @@ class PluginTag(models.Model):
 
 class Runtime(models.Model):
     plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='runtime')
-    type = models.CharField(max_length=50, blank=True, null=True)
-    environments = models.JSONField(blank=True, null=True, default=list)
-    script = models.CharField(max_length=255)
+    environments = models.JSONField(default=list)
+    entrypoint = models.CharField(max_length=255)
 
     def __str__(self):
         if self.environments:
             return f"{self.plugin.name} - {', '.join(self.environments)}"
-        return f"{self.plugin.name} - {self.type or 'unknown'}"
-
-    def get_environments(self):
-        if self.environments and len(self.environments) > 0:
-            return self.environments
-
-        if self.type == 'pythonWithR':
-            return ['python', 'r']
-
-        if self.type:
-            return [self.type]
-
-        return []
+        return f"{self.plugin.name}"
 
 class Input(models.Model):
     plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='inputs')
@@ -98,7 +85,7 @@ class Input(models.Model):
     default = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     placeholder = models.CharField(max_length=255, blank=True, null=True)
-    accept = models.CharField(max_length=255, blank=True, null=True)
+    file_types = models.JSONField(blank=True, null=True, default=list)
     multiple = models.BooleanField(default=False)
     sourceFile = models.CharField(max_length=255, blank=True, null=True)
     min = models.FloatField(blank=True, null=True)

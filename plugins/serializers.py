@@ -20,14 +20,9 @@ class TagSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RuntimeSerializer(serializers.ModelSerializer):
-    normalized_environments = serializers.SerializerMethodField()
-
     class Meta:
         model = Runtime
         fields = '__all__'
-
-    def get_normalized_environments(self, obj):
-        return obj.get_environments()
 
 class InputSerializer(serializers.ModelSerializer):
     class Meta:
