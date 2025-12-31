@@ -261,10 +261,13 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             raw_readme += diagram_md
 
                     readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
-                    
+
                     # Post-process mermaid blocks for frontend rendering
                     mermaid_pattern = re.compile(r'<pre><code class="language-mermaid">([\s\S]*?)</code></pre>')
                     readme_content = mermaid_pattern.sub(r'<pre class="mermaid">\1</pre>', readme_content)
+
+                    # Check if plugin already exists
+                    existing_plugin = Plugin.objects.filter(id=plugin_id).first()
 
                     plugin, created = Plugin.objects.update_or_create(
                         id=plugin_id,
@@ -282,7 +285,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'readme': readme_content,
                             'diagram_enabled': diagram_enabled,
                             'requires_authentication': requires_auth,
-                            'submitted_by': request.user if created else plugin.submitted_by,
+                            'submitted_by': request.user if not existing_plugin else existing_plugin.submitted_by,
                         }
                     )
                     
