@@ -10,7 +10,7 @@
             Provide the URL to your plugin's public Git repository.
         </p>
 
-        <form method="post">
+        <form method="post" id="submit-form">
             {% csrf_token %}
             <div class="row">
                 <div class="input-field col s12">
@@ -24,13 +24,50 @@
             </div>
             <div class="row">
                 <div class="col s12">
-                    <button class="btn-large waves-effect waves-light" type="submit" name="action">
+                    <button class="btn-large waves-effect waves-light" type="submit" name="action" id="submit-btn">
                         Submit Plugin
                         <i class="material-icons right">send</i>
                     </button>
                 </div>
             </div>
+            <div class="row" id="processing-indicator" style="display: none;">
+                <div class="col s12">
+                    <div class="card blue lighten-5">
+                        <div class="card-content">
+                            <p class="center-align">
+                                <i class="material-icons rotating" style="font-size: 48px; color: #2196F3;">sync</i>
+                            </p>
+                            <p class="center-align" style="font-size: 18px;">Processing plugin submission...</p>
+                            <p class="center-align grey-text">Cloning repository and validating plugin.yaml</p>
+                            <div class="progress">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </form>
+
+        <style>
+            @keyframes rotate {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            .rotating {
+                animation: rotate 2s linear infinite;
+            }
+        </style>
+
+        <script>
+            document.getElementById('submit-form').addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('submit-btn');
+                const processingIndicator = document.getElementById('processing-indicator');
+
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Processing... <i class="material-icons right">hourglass_empty</i>';
+                processingIndicator.style.display = 'block';
+            });
+        </script>
     </div>
 </div>
 {% endblock %}
