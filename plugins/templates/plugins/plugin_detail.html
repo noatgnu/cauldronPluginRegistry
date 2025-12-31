@@ -58,6 +58,17 @@
                                 <p><strong>Recommended Commit:</strong> <code id="rec-commit">{{ object.recommended_commit|slice:":7" }}</code></p>
                             {% endif %}
                             <div style="margin-top: 10px;">
+                                <a href="#" onclick="checkForUpdates(); return false;" class="btn-small waves-effect waves-light blue">
+                                    <i class="material-icons left">update</i>Check Updates
+                                </a>
+                                <a href="#" onclick="refreshPlugin(); return false;" class="btn-small waves-effect waves-light green">
+                                    <i class="material-icons left">refresh</i>Refresh Metadata
+                                </a>
+                                <a href="#" onclick="syncToLatest(); return false;" class="btn-small waves-effect waves-light teal">
+                                    <i class="material-icons left">sync</i>Sync to Latest
+                                </a>
+                            </div>
+                            <div style="margin-top: 10px;">
                                 <input type="text" id="new-recommended-commit" placeholder="New recommended commit hash" style="max-width: 300px; display: inline-block; margin-right: 10px;">
                                 <a href="#" onclick="setRecommendedCommit(); return false;" class="btn-small waves-effect waves-light orange">
                                     <i class="material-icons left">bookmark</i>Set Recommended
@@ -135,6 +146,96 @@
                 }
                 document.getElementById('new-recommended-commit').value = '';
                 M.toast({html: 'Recommended commit updated!', classes: 'green'});
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
+        });
+    }
+
+    function checkForUpdates() {
+        const statusDiv = document.getElementById('action-status');
+        statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
+
+        fetch('/api/plugins/{{ object.pk }}/check_my_update/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${data.error}</div>`;
+            } else {
+                const current = data.current_commit.substring(0, 7);
+                const latest = data.latest_commit.substring(0, 7);
+                const updateMsg = data.has_update
+                    ? `<strong>Update available!</strong> Current: ${current}, Latest: ${latest}`
+                    : `Plugin is up to date (${current})`;
+                statusDiv.innerHTML = `<div class="chip ${data.has_update ? 'orange' : 'green'} lighten-4">${updateMsg}</div>`;
+                M.toast({html: data.has_update ? 'Update available!' : 'Up to date', classes: data.has_update ? 'orange' : 'green'});
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
+        });
+    }
+
+    function refreshPlugin() {
+        if (!confirm('This will refresh plugin metadata from the repository. Continue?')) {
+            return;
+        }
+
+        const statusDiv = document.getElementById('action-status');
+        statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
+
+        fetch('/api/plugins/{{ object.pk }}/refresh/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${data.error}</div>`;
+            } else {
+                statusDiv.innerHTML = `<div class="chip green lighten-4">Plugin metadata refreshed successfully!</div>`;
+                M.toast({html: 'Plugin refreshed! Reloading page...', classes: 'green'});
+                setTimeout(() => location.reload(), 1500);
+            }
+        })
+        .catch(error => {
+            statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${error.message}</div>`;
+        });
+    }
+
+    function syncToLatest() {
+        if (!confirm('This will sync the plugin to the latest commit. Continue?')) {
+            return;
+        }
+
+        const statusDiv = document.getElementById('action-status');
+        statusDiv.innerHTML = '<div class="progress"><div class="indeterminate"></div></div>';
+
+        fetch('/api/plugins/{{ object.pk }}/sync_to_latest/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                statusDiv.innerHTML = `<div class="chip red lighten-4">Error: ${data.error}</div>`;
+            } else {
+                statusDiv.innerHTML = `<div class="chip green lighten-4">Plugin synced to latest successfully!</div>`;
+                M.toast({html: 'Plugin synced! Reloading page...', classes: 'green'});
+                setTimeout(() => location.reload(), 1500);
             }
         })
         .catch(error => {

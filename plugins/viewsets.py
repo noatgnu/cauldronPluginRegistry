@@ -132,7 +132,7 @@ def sync_plugin_components(plugin, plugin_data):
         Runtime.objects.create(
             plugin=plugin,
             environments=runtime_info.get('environments', []),
-            script=runtime_info.get('script', '')
+            entrypoint=runtime_info.get('entrypoint', '')
         )
 
     # Inputs
@@ -148,7 +148,7 @@ def sync_plugin_components(plugin, plugin_data):
             default=str(inp.get('default', '')) if inp.get('default') is not None else None,
             description=inp.get('description', ''),
             placeholder=inp.get('placeholder', ''),
-            accept=inp.get('accept', ''),
+            file_types=inp.get('file_types', []),
             multiple=inp.get('multiple', False),
             sourceFile=inp.get('sourceFile', ''),
             min=inp.get('min'),
@@ -254,9 +254,9 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                     # Autogenerate diagram if enabled and not already in README
                     if diagram_enabled and "```mermaid" not in raw_readme:
                         runtime_info = plugin_data.get('runtime', {})
-                        script_name = runtime_info.get('script')
-                        if script_name and runtime_info:
-                            script_path = os.path.join(temp_dir, script_name)
+                        entrypoint = runtime_info.get('entrypoint')
+                        if entrypoint and runtime_info:
+                            script_path = os.path.join(temp_dir, entrypoint)
                             diagram_md = generate_mermaid_diagram(script_path, runtime_info)
                             raw_readme += diagram_md
 
@@ -416,9 +416,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 # Autogenerate diagram if enabled and not already in README
                 if diagram_enabled and "```mermaid" not in raw_readme:
                     runtime_info = plugin_data.get('runtime', {})
-                    script_name = runtime_info.get('script')
-                    if script_name and runtime_info:
-                        script_path = os.path.join(temp_dir, script_name)
+                    entrypoint = runtime_info.get('entrypoint')
+                    if entrypoint and runtime_info:
+                        script_path = os.path.join(temp_dir, entrypoint)
                         diagram_md = generate_mermaid_diagram(script_path, runtime_info)
                         raw_readme += diagram_md
 
@@ -552,9 +552,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
 
                 if diagram_enabled and "```mermaid" not in raw_readme:
                     runtime_info = plugin_data.get('runtime', {})
-                    script_name = runtime_info.get('script')
-                    if script_name and runtime_info:
-                        script_path = os.path.join(temp_dir, script_name)
+                    entrypoint = runtime_info.get('entrypoint')
+                    if entrypoint and runtime_info:
+                        script_path = os.path.join(temp_dir, entrypoint)
                         diagram_md = generate_mermaid_diagram(script_path, runtime_info)
                         raw_readme += diagram_md
 
