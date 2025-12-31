@@ -4,6 +4,38 @@
 from django.db import migrations, models
 
 
+def migrate_script_to_entrypoint(apps, schema_editor):
+    Runtime = apps.get_model('plugins', 'Runtime')
+    for runtime in Runtime.objects.filter(entrypoint__isnull=True):
+        runtime.entrypoint = runtime.script or ''
+        runtime.save()
+    for runtime in Runtime.objects.filter(entrypoint=''):
+        runtime.entrypoint = runtime.script or ''
+        runtime.save()
+
+
+def migrate_accept_to_file_types(apps, schema_editor):
+    Input = apps.get_model('plugins', 'Input')
+    for input_obj in Input.objects.all():
+        if not input_obj.file_types or len(input_obj.file_types) == 0:
+            if input_obj.accept:
+                input_obj.file_types = [input_obj.accept]
+                input_obj.save()
+
+
+def migrate_type_to_environments(apps, schema_editor):
+    Runtime = apps.get_model('plugins', 'Runtime')
+    for runtime in Runtime.objects.all():
+        if not runtime.environments or len(runtime.environments) == 0:
+            if runtime.type == 'pythonWithR':
+                runtime.environments = ['python', 'r']
+            elif runtime.type:
+                runtime.environments = [runtime.type]
+            else:
+                runtime.environments = []
+            runtime.save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -24,36 +56,19 @@ class Migration(migrations.Migration):
             field=models.JSONField(blank=True, null=True, default=list),
         ),
         # Step 3: Data migration - Copy script to entrypoint
-        migrations.RunSQL(
-            sql='''
-                UPDATE plugins_runtime
-                SET entrypoint = COALESCE(script, '')
-                WHERE entrypoint IS NULL OR entrypoint = '';
-            ''',
-            reverse_sql=migrations.RunSQL.noop,
+        migrations.RunPython(
+            migrate_script_to_entrypoint,
+            reverse_code=migrations.RunPython.noop,
         ),
         # Step 4: Data migration - Convert accept to file_types
-        migrations.RunSQL(
-            sql='''
-                UPDATE plugins_input
-                SET file_types = json_array(COALESCE(accept, ''))
-                WHERE (file_types IS NULL OR json_array_length(file_types) = 0)
-                AND accept IS NOT NULL AND accept != '';
-            ''',
-            reverse_sql=migrations.RunSQL.noop,
+        migrations.RunPython(
+            migrate_accept_to_file_types,
+            reverse_code=migrations.RunPython.noop,
         ),
         # Step 5: Data migration - Convert type to environments
-        migrations.RunSQL(
-            sql='''
-                UPDATE plugins_runtime
-                SET environments = CASE
-                    WHEN type = 'pythonWithR' THEN json_array('python', 'r')
-                    WHEN type IS NOT NULL AND type != '' THEN json_array(type)
-                    ELSE json_array()
-                END
-                WHERE environments IS NULL OR json_array_length(environments) = 0;
-            ''',
-            reverse_sql=migrations.RunSQL.noop,
+        migrations.RunPython(
+            migrate_type_to_environments,
+            reverse_code=migrations.RunPython.noop,
         ),
         # Step 6: Make entrypoint non-nullable now that data is migrated
         migrations.AlterField(
