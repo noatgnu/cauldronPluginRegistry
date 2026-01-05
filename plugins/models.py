@@ -43,6 +43,7 @@ class Plugin(models.Model):
     latest_stable_tag = models.CharField(max_length=255, blank=True, null=True)
     readme = models.TextField(blank=True, null=True)
     diagram_enabled = models.BooleanField(default=False)
+    citation_enabled = models.BooleanField(default=False)
     requires_authentication = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

@@ -244,6 +244,10 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                     # Handle Diagram Configuration
                     diagram_config = plugin_data.get('diagram', {})
                     diagram_enabled = diagram_config.get('enabled', False)
+
+                    # Handle Citation Configuration
+                    citation_config = plugin_data.get('citation', {})
+                    citation_enabled = citation_config.get('enabled', False)
                     
                     readme_path = os.path.join(temp_dir, 'README.md')
                     raw_readme = ""
@@ -284,6 +288,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'status': initial_status,
                             'readme': readme_content,
                             'diagram_enabled': diagram_enabled,
+                            'citation_enabled': citation_enabled,
                             'requires_authentication': requires_auth,
                             'submitted_by': request.user if not existing_plugin else existing_plugin.submitted_by,
                         }
@@ -410,6 +415,10 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 diagram_config = plugin_data.get('diagram', {})
                 diagram_enabled = diagram_config.get('enabled', False)
 
+                # Handle Citation Configuration
+                citation_config = plugin_data.get('citation', {})
+                citation_enabled = citation_config.get('enabled', False)
+
                 readme_path = os.path.join(temp_dir, 'README.md')
                 raw_readme = ""
                 if os.path.exists(readme_path):
@@ -440,6 +449,7 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 plugin.commit_hash = commit_hash
                 plugin.readme = readme_content
                 plugin.diagram_enabled = diagram_enabled
+                plugin.citation_enabled = citation_enabled
                 plugin.save()
                 
                 sync_plugin_components(plugin, plugin_data)
@@ -547,6 +557,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 diagram_config = plugin_data.get('diagram', {})
                 diagram_enabled = diagram_config.get('enabled', False)
 
+                citation_config = plugin_data.get('citation', {})
+                citation_enabled = citation_config.get('enabled', False)
+
                 readme_path = os.path.join(temp_dir, 'README.md')
                 raw_readme = ""
                 if os.path.exists(readme_path):
@@ -576,6 +589,7 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 plugin.latest_stable_tag = latest_tag
                 plugin.readme = readme_content
                 plugin.diagram_enabled = diagram_enabled
+                plugin.citation_enabled = citation_enabled
                 plugin.save()
 
                 sync_plugin_components(plugin, plugin_data)

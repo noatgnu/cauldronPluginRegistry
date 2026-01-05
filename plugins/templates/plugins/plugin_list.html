@@ -14,6 +14,7 @@
                         <th>Description</th>
                         <th>Author</th>
                         <th>Category</th>
+                        <th>Runtime</th>
                         <th>Version</th>
                         <th>Actions</th>
                     </tr>
@@ -25,6 +26,17 @@
                         <td>{{ plugin.description|truncatechars:100 }}</td>
                         <td>{{ plugin.author.name }}</td>
                         <td>{{ plugin.category.name }}</td>
+                        <td>
+                            {% if plugin.runtime %}
+                                {% for env in plugin.runtime.environments %}
+                                    <span class="chip">{{ env }}</span>
+                                {% empty %}
+                                    <span class="grey-text">None</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="grey-text">None</span>
+                            {% endif %}
+                        </td>
                         <td>{{ plugin.version }}</td>
                         <td>
                             <a href="{% url 'plugin-detail' plugin.pk %}" class="btn-small waves-effect waves-light">View</a>
@@ -32,7 +44,7 @@
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="6" class="center-align">No plugins found.</td>
+                        <td colspan="7" class="center-align">No plugins found.</td>
                     </tr>
                 {% endfor %}
                 </tbody>
