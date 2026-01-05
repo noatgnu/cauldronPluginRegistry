@@ -32,12 +32,12 @@
             </div>
             <div class="row" id="processing-indicator" style="display: none;">
                 <div class="col s12">
-                    <div class="card blue lighten-5">
+                    <div class="card processing-card">
                         <div class="card-content">
                             <p class="center-align">
-                                <i class="material-icons rotating" style="font-size: 48px; color: #2196F3;">sync</i>
+                                <i class="material-icons rotating processing-icon">sync</i>
                             </p>
-                            <p class="center-align" style="font-size: 18px;">Processing plugin submission...</p>
+                            <p class="center-align processing-title">Processing plugin submission...</p>
                             <p class="center-align grey-text">Cloning repository and validating plugin.yaml</p>
                             <div class="progress">
                                 <div class="indeterminate"></div>
@@ -47,16 +47,6 @@
                 </div>
             </div>
         </form>
-
-        <style>
-            @keyframes rotate {
-                from { transform: rotate(0deg); }
-                to { transform: rotate(360deg); }
-            }
-            .rotating {
-                animation: rotate 2s linear infinite;
-            }
-        </style>
 
         <script>
             document.getElementById('submit-form').addEventListener('submit', function(e) {

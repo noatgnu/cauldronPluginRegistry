@@ -135,6 +135,36 @@ body.dark-mode .mermaid {
     filter: brightness(0.8) contrast(1.2);
 }
 
+/* Processing indicator styles */
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.rotating {
+    animation: rotate 2s linear infinite;
+}
+.processing-card {
+    background-color: rgba(63, 81, 181, 0.1);
+}
+.processing-card .card-content {
+    padding: 20px;
+}
+.processing-icon {
+    font-size: 48px;
+    color: #3f51b5;
+}
+.processing-title {
+    font-size: 18px;
+    font-weight: 400;
+    margin: 10px 0 5px 0;
+}
+body.dark-mode .processing-card {
+    background-color: rgba(63, 81, 181, 0.2);
+}
+body.dark-mode .processing-icon {
+    color: #82b1ff;
+}
+
 /* Styles from home.html */
 /* Styling specific to the home page body */
 .homepage-hero-bg {
