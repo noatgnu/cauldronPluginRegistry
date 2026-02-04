@@ -4,7 +4,7 @@ import yaml
 import os
 import stat
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -309,13 +309,24 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
 
 class PluginViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PluginSerializer
-    filterset_fields = ['name', 'category', 'author']
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'description', 'author__name', 'category__name']
+    ordering_fields = ['name', 'updated_at', 'created_at']
     permission_classes = [AllowAny]
 
     def get_queryset(self):
         queryset = Plugin.objects.all()
         if not self.request.user.is_staff:
             queryset = queryset.filter(status='approved')
+
+        category_name = self.request.query_params.get('category__name')
+        if category_name:
+            queryset = queryset.filter(category__name=category_name)
+
+        author_name = self.request.query_params.get('author__name')
+        if author_name:
+            queryset = queryset.filter(author__name=author_name)
+
         return queryset
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
