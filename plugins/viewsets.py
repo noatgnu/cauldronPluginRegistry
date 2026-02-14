@@ -614,6 +614,228 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
         finally:
             cleanup_ssh_key_file(ssh_key_file_path)
 
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def batch_check_updates(self, request):
+        """
+        Check updates for multiple plugins at once.
+        Admin-only endpoint for batch update checking.
+        Request body: {"plugin_ids": ["plugin-id-1", "plugin-id-2", ...]}
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+
+        plugin_ids = request.data.get('plugin_ids', [])
+        if not plugin_ids:
+            return Response({'error': 'plugin_ids is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        results = []
+        for plugin_id in plugin_ids:
+            try:
+                plugin = Plugin.objects.get(id=plugin_id)
+                if not plugin.repository:
+                    results.append({
+                        'plugin_id': plugin_id,
+                        'error': 'Plugin has no repository URL',
+                        'success': False
+                    })
+                    continue
+
+                ssh_key_file_path = None
+                try:
+                    ssh_command, ssh_key_file_path = setup_git_ssh_auth(plugin.repository, request.user)
+                    env = os.environ.copy()
+                    if ssh_command:
+                        env['GIT_SSH_COMMAND'] = ssh_command
+
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        repo = git.Repo.clone_from(plugin.repository, temp_dir, depth=1, env=env)
+                        latest_commit = repo.head.commit.hexsha
+
+                        tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
+                        latest_tag = tags[0].name if tags else None
+
+                        recommended = plugin.recommended_commit if plugin.recommended_commit else latest_commit
+                        has_update = recommended != plugin.commit_hash
+
+                        results.append({
+                            'plugin_id': plugin.id,
+                            'plugin_name': plugin.name,
+                            'current_commit': plugin.commit_hash,
+                            'latest_commit': latest_commit,
+                            'recommended_commit': recommended,
+                            'latest_stable_tag': latest_tag,
+                            'has_update': has_update,
+                            'changelog_url': f"{plugin.repository}/compare/{plugin.commit_hash}...{recommended}" if has_update else None,
+                            'success': True
+                        })
+
+                except git.exc.GitCommandError as e:
+                    results.append({
+                        'plugin_id': plugin_id,
+                        'error': f'Failed to check repository: {str(e)}',
+                        'success': False
+                    })
+                finally:
+                    cleanup_ssh_key_file(ssh_key_file_path)
+
+            except Plugin.DoesNotExist:
+                results.append({
+                    'plugin_id': plugin_id,
+                    'error': 'Plugin not found',
+                    'success': False
+                })
+
+        has_updates_count = sum(1 for r in results if r.get('has_update', False))
+        failed_count = sum(1 for r in results if not r.get('success', False))
+
+        return Response({
+            'total': len(plugin_ids),
+            'checked': len(results),
+            'has_updates': has_updates_count,
+            'failed': failed_count,
+            'results': results
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def batch_sync(self, request):
+        """
+        Sync multiple plugins to their latest commits.
+        Admin-only endpoint for batch synchronization.
+        Request body: {"plugin_ids": ["plugin-id-1", "plugin-id-2", ...]}
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+
+        plugin_ids = request.data.get('plugin_ids', [])
+        if not plugin_ids:
+            return Response({'error': 'plugin_ids is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        results = []
+        for plugin_id in plugin_ids:
+            try:
+                plugin = Plugin.objects.get(id=plugin_id)
+                if not plugin.repository:
+                    results.append({
+                        'plugin_id': plugin_id,
+                        'error': 'Plugin has no repository URL',
+                        'success': False
+                    })
+                    continue
+
+                ssh_key_file_path = None
+                try:
+                    ssh_command, ssh_key_file_path = setup_git_ssh_auth(plugin.repository, request.user)
+                    env = os.environ.copy()
+                    if ssh_command:
+                        env['GIT_SSH_COMMAND'] = ssh_command
+
+                    with tempfile.TemporaryDirectory() as temp_dir:
+                        repo = git.Repo.clone_from(plugin.repository, temp_dir, env=env)
+                        latest_commit = repo.head.commit.hexsha
+
+                        tags = sorted(repo.tags, key=lambda t: t.commit.committed_datetime, reverse=True)
+                        latest_tag = tags[0].name if tags else None
+
+                        plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                        if not os.path.exists(plugin_yaml_path):
+                            results.append({
+                                'plugin_id': plugin_id,
+                                'error': 'plugin.yaml not found in the repository',
+                                'success': False
+                            })
+                            continue
+
+                        with open(plugin_yaml_path, 'r') as f:
+                            plugin_data = yaml.safe_load(f)
+
+                        plugin_info = plugin_data.get('plugin', {})
+
+                        author_name = plugin_info.get('author')
+                        author = None
+                        if author_name:
+                            author, _ = Author.objects.get_or_create(name=author_name)
+
+                        category_name = plugin_info.get('category')
+                        category = None
+                        if category_name:
+                            category, _ = Category.objects.get_or_create(name=category_name)
+
+                        diagram_config = plugin_data.get('diagram', {})
+                        diagram_enabled = diagram_config.get('enabled', False)
+
+                        citation_config = plugin_data.get('citation', {})
+                        citation_enabled = citation_config.get('enabled', False)
+
+                        readme_path = os.path.join(temp_dir, 'README.md')
+                        raw_readme = ""
+                        if os.path.exists(readme_path):
+                            with open(readme_path, 'r') as f:
+                                raw_readme = f.read()
+
+                        if diagram_enabled and "```mermaid" not in raw_readme:
+                            runtime_info = plugin_data.get('runtime', {})
+                            entrypoint = runtime_info.get('entrypoint')
+                            if entrypoint and runtime_info:
+                                script_path = os.path.join(temp_dir, entrypoint)
+                                diagram_md = generate_mermaid_diagram(script_path, runtime_info)
+                                raw_readme += diagram_md
+
+                        readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
+
+                        mermaid_pattern = re.compile(r'<pre><code class="language-mermaid">([\s\S]*?)</code></pre>')
+                        readme_content = mermaid_pattern.sub(r'<pre class="mermaid">\1</pre>', readme_content)
+
+                        old_commit = plugin.commit_hash
+                        plugin.name = plugin_info.get('name')
+                        plugin.description = plugin_info.get('description')
+                        plugin.version = plugin_info.get('version')
+                        plugin.author = author
+                        plugin.category = category
+                        plugin.icon = plugin_info.get('icon')
+                        plugin.commit_hash = latest_commit
+                        plugin.latest_stable_tag = latest_tag
+                        plugin.readme = readme_content
+                        plugin.diagram_enabled = diagram_enabled
+                        plugin.citation_enabled = citation_enabled
+                        plugin.save()
+
+                        sync_plugin_components(plugin, plugin_data)
+
+                        results.append({
+                            'plugin_id': plugin.id,
+                            'plugin_name': plugin.name,
+                            'old_commit': old_commit,
+                            'new_commit': latest_commit,
+                            'version': plugin.version,
+                            'success': True
+                        })
+
+                except git.exc.GitCommandError as e:
+                    results.append({
+                        'plugin_id': plugin_id,
+                        'error': f'Failed to sync repository: {str(e)}',
+                        'success': False
+                    })
+                finally:
+                    cleanup_ssh_key_file(ssh_key_file_path)
+
+            except Plugin.DoesNotExist:
+                results.append({
+                    'plugin_id': plugin_id,
+                    'error': 'Plugin not found',
+                    'success': False
+                })
+
+        synced_count = sum(1 for r in results if r.get('success', False))
+        failed_count = sum(1 for r in results if not r.get('success', False))
+
+        return Response({
+            'total': len(plugin_ids),
+            'synced': synced_count,
+            'failed': failed_count,
+            'results': results
+        }, status=status.HTTP_200_OK)
+
 
 class AuthorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Author.objects.all()
