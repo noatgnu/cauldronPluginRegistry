@@ -9,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable, RepositorySSHKey
-from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer
+from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer, BulkPluginSubmissionSerializer
 from .permissions import IsOwnerOrAdmin
 
 from django.conf import settings
@@ -306,6 +306,165 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                 cleanup_ssh_key_file(ssh_key_file_path)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def batch_submit(self, request):
+        """
+        Submit multiple plugins from repository URLs at once.
+        Staff-only endpoint for bulk plugin submission.
+        Request body: {"repo_urls": ["https://github.com/...", "https://github.com/..."]}
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Staff access required'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = BulkPluginSubmissionSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        repo_urls = serializer.validated_data['repo_urls']
+        results = []
+
+        for repo_url in repo_urls:
+            ssh_key_file_path = None
+            requires_auth = False
+
+            try:
+                requires_auth = check_repo_requires_auth(repo_url)
+            except Exception:
+                pass
+
+            try:
+                ssh_command, ssh_key_file_path = setup_git_ssh_auth(repo_url, request.user)
+                env = os.environ.copy()
+                if ssh_command:
+                    env['GIT_SSH_COMMAND'] = ssh_command
+
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    repo = git.Repo.clone_from(repo_url, temp_dir, env=env)
+                    commit_hash = repo.head.commit.hexsha
+
+                    plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                    if not os.path.exists(plugin_yaml_path):
+                        results.append({
+                            'repo_url': repo_url,
+                            'error': 'plugin.yaml not found in the repository',
+                            'success': False
+                        })
+                        continue
+
+                    with open(plugin_yaml_path, 'r') as f:
+                        plugin_data = yaml.safe_load(f)
+
+                    plugin_info = plugin_data.get('plugin', {})
+                    plugin_id = plugin_info.get('id')
+                    if not plugin_id:
+                        results.append({
+                            'repo_url': repo_url,
+                            'error': 'Plugin ID not found in plugin.yaml',
+                            'success': False
+                        })
+                        continue
+
+                    author_name = plugin_info.get('author')
+                    author = None
+                    if author_name:
+                        author, _ = Author.objects.get_or_create(name=author_name)
+
+                    category_name = plugin_info.get('category')
+                    category = None
+                    if category_name:
+                        category, _ = Category.objects.get_or_create(name=category_name)
+
+                    initial_status = 'approved' if settings.AUTO_APPROVE_PLUGINS else 'pending'
+
+                    diagram_config = plugin_data.get('diagram', {})
+                    diagram_enabled = diagram_config.get('enabled', False)
+
+                    citation_config = plugin_data.get('citation', {})
+                    citation_enabled = citation_config.get('enabled', False)
+
+                    readme_path = os.path.join(temp_dir, 'README.md')
+                    raw_readme = ""
+                    if os.path.exists(readme_path):
+                        with open(readme_path, 'r') as f:
+                            raw_readme = f.read()
+
+                    if diagram_enabled and "```mermaid" not in raw_readme:
+                        runtime_info = plugin_data.get('runtime', {})
+                        entrypoint = runtime_info.get('entrypoint')
+                        if entrypoint and runtime_info:
+                            script_path = os.path.join(temp_dir, entrypoint)
+                            diagram_md = generate_mermaid_diagram(script_path, runtime_info)
+                            raw_readme += diagram_md
+
+                    readme_content = markdown.markdown(raw_readme, extensions=['fenced_code', 'tables'])
+
+                    mermaid_pattern = re.compile(r'<pre><code class="language-mermaid">([\s\S]*?)</code></pre>')
+                    readme_content = mermaid_pattern.sub(r'<pre class="mermaid">\1</pre>', readme_content)
+
+                    existing_plugin = Plugin.objects.filter(id=plugin_id).first()
+
+                    plugin_obj, created = Plugin.objects.update_or_create(
+                        id=plugin_id,
+                        defaults={
+                            'name': plugin_info.get('name'),
+                            'description': plugin_info.get('description'),
+                            'version': plugin_info.get('version'),
+                            'author': author,
+                            'category': category,
+                            'subcategory': plugin_info.get('subcategory'),
+                            'icon': plugin_info.get('icon'),
+                            'repository': repo_url,
+                            'commit_hash': commit_hash,
+                            'status': initial_status,
+                            'readme': readme_content,
+                            'diagram_enabled': diagram_enabled,
+                            'citation_enabled': citation_enabled,
+                            'requires_authentication': requires_auth,
+                            'submitted_by': request.user if not existing_plugin else existing_plugin.submitted_by,
+                        }
+                    )
+
+                    sync_plugin_components(plugin_obj, plugin_data)
+
+                    results.append({
+                        'repo_url': repo_url,
+                        'plugin_id': plugin_obj.id,
+                        'plugin_name': plugin_obj.name,
+                        'version': plugin_obj.version,
+                        'created': created,
+                        'success': True
+                    })
+
+            except git.exc.GitCommandError as e:
+                results.append({
+                    'repo_url': repo_url,
+                    'error': f'Failed to clone repository: {str(e)}',
+                    'success': False
+                })
+            except Exception as e:
+                results.append({
+                    'repo_url': repo_url,
+                    'error': f'An unexpected error occurred: {str(e)}',
+                    'success': False
+                })
+            finally:
+                cleanup_ssh_key_file(ssh_key_file_path)
+
+        submitted_count = sum(1 for r in results if r.get('success', False))
+        failed_count = sum(1 for r in results if not r.get('success', False))
+        created_count = sum(1 for r in results if r.get('created', False))
+        updated_count = submitted_count - created_count
+
+        return Response({
+            'total': len(repo_urls),
+            'submitted': submitted_count,
+            'created': created_count,
+            'updated': updated_count,
+            'failed': failed_count,
+            'results': results
+        }, status=status.HTTP_200_OK)
+
 
 class PluginViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = PluginSerializer

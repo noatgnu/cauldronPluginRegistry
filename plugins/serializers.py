@@ -4,6 +4,15 @@ from .models import Plugin, Author, Category, Tag, Runtime, Input, Output, Plugi
 class PluginSubmissionSerializer(serializers.Serializer):
     repo_url = serializers.URLField()
 
+
+class BulkPluginSubmissionSerializer(serializers.Serializer):
+    """Serializer for bulk plugin submission (staff only)."""
+    repo_urls = serializers.ListField(
+        child=serializers.URLField(),
+        min_length=1,
+        max_length=10
+    )
+
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
