@@ -90,7 +90,7 @@ body {
     display: flex;
     min-height: 100vh;
     flex-direction: column;
-    background-color: transparent !important; /* Let html handle background */
+    background-color: transparent !important;
     color: var(--text-color);
     background-image: var(--body-bg-image);
     background-repeat: repeat;
@@ -105,12 +105,12 @@ h1, h2, h3, h4, h5, h6, p, li, span, div {
 main { 
     flex: 1 0 auto; 
     position: relative;
-    z-index: 1; /* Above canvas */
+    z-index: 1;
 }
 
 header, footer {
     position: relative;
-    z-index: 2; /* Above canvas */
+    z-index: 2;
 }
 
 .nav-wrapper { background-color: var(--nav-bg) !important; }
@@ -203,8 +203,8 @@ th { color: var(--text-color); }
     width: 100%;
     height: 40%;
     pointer-events: none;
-    z-index: 0; /* Between background and content */
-    opacity: 0.4;
+    z-index: 0;
+    opacity: 0.8;
     transform: translateY(-50%);
     display: none;
 }
@@ -225,47 +225,45 @@ th { color: var(--text-color); }
     position: relative;
     display: inline-block;
     z-index: 1;
-}
-
-/* Slanted underline for primary titles (h1) */
-[data-theme^="cyber-"] h1 {
-    margin-bottom: 40px;
-    padding-bottom: 10px;
-}
-[data-theme^="cyber-"] h1::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: -5%;
-    width: 110%;
-    height: 4px;
-    background: var(--primary-color);
-    transform: skewX(-45deg);
-    box-shadow: 0 0 10px var(--primary-color);
-    display: block !important;
-}
-
-/* Left border slant for h2-h4 */
-[data-theme^="cyber-"] h2, 
-[data-theme^="cyber-"] h3, 
-[data-theme^="cyber-"] h4 {
     border-left: 5px solid var(--primary-color);
-    padding-left: 15px;
-    margin-bottom: 25px;
+    padding-left: 20px;
 }
 
+[data-theme^="cyber-"] h1::before,
 [data-theme^="cyber-"] h2::before, 
 [data-theme^="cyber-"] h3::before, 
 [data-theme^="cyber-"] h4::before {
-    content: '';
+    content: " ";
     position: absolute;
     top: -5px;
     left: -5px;
-    width: 25px;
-    height: 5px;
+    width: 35px;
+    height: 6px;
     background: var(--primary-color);
     transform: skewX(-45deg);
     display: block !important;
+}
+
+[data-theme^="cyber-"] h1 {
+    margin-bottom: 50px;
+    padding-bottom: 15px;
+}
+[data-theme^="cyber-"] h1::after {
+    content: " ";
+    position: absolute;
+    bottom: 0;
+    left: -10%;
+    width: 120%;
+    height: 6px;
+    background: var(--primary-color);
+    transform: skewX(-45deg);
+    box-shadow: 0 0 15px var(--primary-color);
+    display: block !important;
+}
+
+/* Secondary bars for headers to make it more "cyber" */
+[data-theme^="cyber-"] h2, [data-theme^="cyber-"] h3, [data-theme^="cyber-"] h4 {
+    margin-bottom: 30px;
 }
 
 [data-theme^="cyber-"] .card {

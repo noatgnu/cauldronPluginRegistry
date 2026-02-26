@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
                 size: Math.random() * 2 + 1,
-                speed: Math.random() * 0.5 + 0.2,
+                speed: Math.random() * 0.15 + 0.05,
                 offset: Math.random() * Math.PI * 2,
                 opacity: Math.random() * 0.5 + 0.2
             });
