@@ -1,6 +1,7 @@
 import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Cauldron Scripts Loaded');
     const body = document.body;
     const html = document.documentElement;
     
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (canvas) {
         ctx = canvas.getContext('2d');
+        console.log('Synth Canvas Found');
     }
 
     // Theme Management
@@ -49,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyTheme(theme) {
+        console.log('Applying theme:', theme);
         html.setAttribute('data-theme', theme);
         
         if (theme.includes('dark')) {
@@ -61,9 +64,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Handle Synthwave Animation based on theme
         if (theme.startsWith('cyber') && canvas) {
+            console.log('Starting Synth Animation');
             initSynth();
             if (!animationFrame) animateSynth();
         } else if (animationFrame) {
+            console.log('Stopping Synth Animation');
             cancelAnimationFrame(animationFrame);
             animationFrame = null;
             if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
