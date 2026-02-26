@@ -103,7 +103,6 @@ h1, h2, h3, h4, h5, h6, p, li, span, div {
 main { flex: 1 0 auto; }
 
 .nav-wrapper { background-color: var(--nav-bg) !important; }
-/* Navbar links should always be white/light for default themes, but adaptive for cyber */
 .nav-wrapper a { color: #ffffff !important; }
 [data-theme="cyber-light"] .nav-wrapper a { color: var(--text-color) !important; }
 
@@ -195,7 +194,10 @@ th { color: var(--text-color); }
 }
 
 /* Cyber Theme Extras */
-[data-theme^="cyber-"] h1, [data-theme^="cyber-"] h2, [data-theme^="cyber-"] h3 {
+[data-theme^="cyber-"] h1, 
+[data-theme^="cyber-"] h2, 
+[data-theme^="cyber-"] h3, 
+[data-theme^="cyber-"] h4 {
     text-transform: uppercase;
     letter-spacing: 2px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -204,23 +206,34 @@ th { color: var(--text-color); }
     display: inline-block;
 }
 
+/* Slanted underline for primary titles (h1) */
+[data-theme^="cyber-"] h1 {
+    margin-bottom: 30px;
+}
 [data-theme^="cyber-"] h1::after {
     content: '';
     position: absolute;
-    bottom: -5px;
-    left: -10%;
-    width: 120%;
+    bottom: -10px;
+    left: -5%;
+    width: 110%;
     height: 4px;
     background: var(--primary-color);
     transform: skewX(-45deg);
+    box-shadow: 0 0 10px var(--primary-color);
 }
 
-[data-theme^="cyber-"] h2 {
+/* Left border slant for h2-h4 */
+[data-theme^="cyber-"] h2, 
+[data-theme^="cyber-"] h3, 
+[data-theme^="cyber-"] h4 {
     border-left: 5px solid var(--primary-color);
     padding-left: 15px;
+    margin-bottom: 20px;
 }
 
-[data-theme^="cyber-"] h2::before {
+[data-theme^="cyber-"] h2::before, 
+[data-theme^="cyber-"] h3::before, 
+[data-theme^="cyber-"] h4::before {
     content: '';
     position: absolute;
     top: -5px;
