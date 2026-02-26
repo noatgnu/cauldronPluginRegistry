@@ -7,6 +7,15 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <script>
+        (function() {
+            const theme = localStorage.getItem('cauldron_theme') || 'default-light';
+            document.documentElement.setAttribute('data-theme', theme);
+            if (theme.includes('dark')) {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header>
@@ -26,16 +35,6 @@
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>
                     {% endif %}
-                    <li class="dark-mode-toggle-li">
-                        <div class="switch">
-                            <label>
-                                <i class="material-icons" style="font-size: 1.5rem; vertical-align: middle;">wb_sunny</i>
-                                <input type="checkbox" id="dark-mode-toggle">
-                                <span class="lever"></span>
-                                <i class="material-icons" style="font-size: 1.5rem; vertical-align: middle;">brightness_3</i>
-                            </label>
-                        </div>
-                    </li>
                 </ul>
             </div>
         </nav>
