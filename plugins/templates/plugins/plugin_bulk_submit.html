@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Submit Plugins - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+<div class="row" style="margin-top: 40px;">
+    <div class="col s12 m10 offset-m1 l8 offset-l2">
+        <h4 style="font-weight: 300; margin-bottom: 20px;">Bulk Submit Plugins</h4>
+        <p class="grey-text" style="margin-bottom: 40px;">
+            Submit multiple plugins at once by providing their Git repository URLs (one per line, maximum 10).
+        </p>
+
+        <form method="post" id="bulk-submit-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="card-panel red lighten-4 red-text text-darken-4" style="margin-bottom: 20px;">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix" style="margin-top: 10px;">link</i>
+                    <textarea id="{{ form.repo_urls.id_for_label }}" name="{{ form.repo_urls.name }}" class="materialize-textarea" style="padding-left: 3rem;" required>{% if form.repo_urls.value %}{{ form.repo_urls.value }}{% endif %}</textarea>
+                    <label for="{{ form.repo_urls.id_for_label }}" {% if form.repo_urls.value %}class="active"{% endif %}>Git Repository URLs (one per line)</label>
+                    {% if form.repo_urls.errors %}
+                        <span class="helper-text red-text">{{ form.repo_urls.errors.as_text }}</span>
+                    {% else %}
+                        <span class="helper-text">Enter one repository URL per line (maximum 10)</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <button class="btn-large waves-effect waves-light" type="submit" name="action" id="submit-btn">
+                        Submit Plugins
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+            <div class="row" id="processing-indicator" style="display: none;">
+                <div class="col s12">
+                    <div class="card processing-card">
+                        <div class="card-content">
+                            <p class="center-align">
+                                <i class="material-icons rotating processing-icon">sync</i>
+                            </p>
+                            <p class="center-align processing-title">Processing bulk submission...</p>
+                            <p class="center-align grey-text">Cloning repositories and validating plugin.yaml files</p>
+                            <div class="progress">
+                                <div class="indeterminate"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('bulk-submit-form').addEventListener('submit', function(e) {
+        const submitBtn = document.getElementById('submit-btn');
+        const processingIndicator = document.getElementById('processing-indicator');
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Processing... <i class="material-icons right">hourglass_empty</i>';
+        processingIndicator.style.display = 'block';
+    });
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    PluginListView, PluginDetailView, PluginSubmitView,
+    PluginListView, PluginDetailView, PluginSubmitView, BulkPluginSubmitView,
     UserProfileView, UserPluginListView, SSHKeyListView,
     SSHKeyCreateView, SSHKeyDeleteView
 )
@@ -8,6 +8,7 @@ from .views import (
 urlpatterns = [
     path('', PluginListView.as_view(), name='plugin-list'),
     path('submit/', PluginSubmitView.as_view(), name='plugin-submit'),
+    path('bulk-submit/', BulkPluginSubmitView.as_view(), name='plugin-bulk-submit'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('my-plugins/', UserPluginListView.as_view(), name='user-plugin-list'),
     path('ssh-keys/', SSHKeyListView.as_view(), name='ssh-key-list'),

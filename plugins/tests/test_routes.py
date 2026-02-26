@@ -82,8 +82,41 @@ class TestProtectedRoutes:
     def test_plugin_submit_page_unauthenticated(self):
         self.client.logout()
         response = self.client.get('/plugins/submit/')
-        assert response.status_code == status.HTTP_302_FOUND  # Redirect to login
+        assert response.status_code == status.HTTP_302_FOUND
         assert '/login/' in response.url
+
+
+@pytest.mark.django_db
+class TestStaffRoutes:
+    def setup_method(self):
+        self.client = Client()
+        self.staff_user = User.objects.create_user(
+            username='staffuser',
+            password='testpassword',
+            is_staff=True
+        )
+        self.regular_user = User.objects.create_user(
+            username='regularuser',
+            password='testpassword',
+            is_staff=False
+        )
+
+    def test_bulk_submit_page_staff_authenticated(self):
+        self.client.login(username='staffuser', password='testpassword')
+        response = self.client.get('/plugins/bulk-submit/')
+        assert response.status_code == status.HTTP_200_OK
+        assert 'plugins/plugin_bulk_submit.html' in [t.name for t in response.templates]
+
+    def test_bulk_submit_page_non_staff_forbidden(self):
+        self.client.login(username='regularuser', password='testpassword')
+        response = self.client.get('/plugins/bulk-submit/')
+        assert response.status_code == status.HTTP_302_FOUND
+        assert '/admin/login/' in response.url
+
+    def test_bulk_submit_page_unauthenticated(self):
+        response = self.client.get('/plugins/bulk-submit/')
+        assert response.status_code == status.HTTP_302_FOUND
+
 
 @pytest.mark.django_db
 class TestAPIRoutes:
