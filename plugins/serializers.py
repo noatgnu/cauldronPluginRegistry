@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Plugin, Author, Category, Tag, Runtime, Input, Output, PluginEnvVariable
+from .models import Plugin, Author, Category, Tag, Runtime, Input, Output, PluginEnvVariable, Execution, Plot, Annotation, Example
 
 class PluginSubmissionSerializer(serializers.Serializer):
     repo_url = serializers.URLField()
@@ -48,6 +48,31 @@ class PluginEnvVariableSerializer(serializers.ModelSerializer):
         model = PluginEnvVariable
         fields = '__all__'
 
+
+class ExecutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Execution
+        fields = '__all__'
+
+
+class PlotSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Plot
+        fields = '__all__'
+
+
+class AnnotationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Annotation
+        fields = '__all__'
+
+
+class ExampleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Example
+        fields = '__all__'
+
+
 class PluginUpdateInfoSerializer(serializers.Serializer):
     plugin_id = serializers.CharField()
     current_commit = serializers.CharField()
@@ -65,6 +90,10 @@ class PluginSerializer(serializers.ModelSerializer):
     inputs = InputSerializer(many=True)
     outputs = OutputSerializer(many=True)
     env_variables = PluginEnvVariableSerializer(many=True)
+    execution = ExecutionSerializer(read_only=True)
+    plots = PlotSerializer(many=True, read_only=True)
+    annotation = AnnotationSerializer(read_only=True)
+    example = ExampleSerializer(read_only=True)
 
     class Meta:
         model = Plugin

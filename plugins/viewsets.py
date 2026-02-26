@@ -8,7 +8,7 @@ from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable, RepositorySSHKey
+from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable, RepositorySSHKey, Execution, Plot, Annotation, Example
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer, BulkPluginSubmissionSerializer
 from .permissions import IsOwnerOrAdmin
 
@@ -125,17 +125,16 @@ def generate_mermaid_diagram(script_path, runtime_info):
     return "\n## Workflow Diagram\n\n" + "\n".join(mermaid) + "\n"
 
 def sync_plugin_components(plugin, plugin_data):
-    # Runtime
     runtime_info = plugin_data.get('runtime', {})
     Runtime.objects.filter(plugin=plugin).delete()
     if runtime_info:
         Runtime.objects.create(
             plugin=plugin,
             environments=runtime_info.get('environments', []),
-            entrypoint=runtime_info.get('entrypoint', '')
+            entrypoint=runtime_info.get('entrypoint', ''),
+            docker=runtime_info.get('docker')
         )
 
-    # Inputs
     Input.objects.filter(plugin=plugin).delete()
     inputs_data = plugin_data.get('inputs', [])
     for inp in inputs_data:
@@ -149,14 +148,21 @@ def sync_plugin_components(plugin, plugin_data):
             description=inp.get('description', ''),
             placeholder=inp.get('placeholder', ''),
             file_types=inp.get('file_types', []),
+            accept=inp.get('accept', ''),
             multiple=inp.get('multiple', False),
             sourceFile=inp.get('sourceFile', ''),
             min=inp.get('min'),
             max=inp.get('max'),
-            step=inp.get('step')
+            step=inp.get('step'),
+            options=inp.get('options'),
+            optionsFromFile=inp.get('optionsFromFile', ''),
+            groups=inp.get('groups'),
+            groupsFromFile=inp.get('groupsFromFile', ''),
+            visibleWhen=inp.get('visibleWhen'),
+            disableAnnotationManagement=inp.get('disableAnnotationManagement', False),
+            tableColumns=inp.get('tableColumns')
         )
 
-    # Outputs
     Output.objects.filter(plugin=plugin).delete()
     outputs_data = plugin_data.get('outputs', [])
     for out in outputs_data:
@@ -169,7 +175,6 @@ def sync_plugin_components(plugin, plugin_data):
             format=out.get('format', '')
         )
 
-    # Env Variables
     PluginEnvVariable.objects.filter(plugin=plugin).delete()
     execution_info = plugin_data.get('execution', {})
     env_vars_data = execution_info.get('envVariables', [])
@@ -189,6 +194,47 @@ def sync_plugin_components(plugin, plugin_data):
             min=ev.get('min'),
             max=ev.get('max'),
             step=ev.get('step')
+        )
+
+    Execution.objects.filter(plugin=plugin).delete()
+    if execution_info:
+        Execution.objects.create(
+            plugin=plugin,
+            argsMapping=execution_info.get('argsMapping'),
+            outputDir=execution_info.get('outputDir', ''),
+            requirements=execution_info.get('requirements')
+        )
+
+    Plot.objects.filter(plugin=plugin).delete()
+    plots_data = plugin_data.get('plots', [])
+    for plot in plots_data:
+        Plot.objects.create(
+            plugin=plugin,
+            plot_id=plot.get('id', ''),
+            name=plot.get('name', ''),
+            type=plot.get('type', ''),
+            component=plot.get('component', ''),
+            dataSource=plot.get('dataSource', ''),
+            config=plot.get('config'),
+            customization=plot.get('customization')
+        )
+
+    Annotation.objects.filter(plugin=plugin).delete()
+    annotation_data = plugin_data.get('annotation')
+    if annotation_data:
+        Annotation.objects.create(
+            plugin=plugin,
+            samplesFrom=annotation_data.get('samplesFrom', ''),
+            annotationFile=annotation_data.get('annotationFile', '')
+        )
+
+    Example.objects.filter(plugin=plugin).delete()
+    example_data = plugin_data.get('example')
+    if example_data:
+        Example.objects.create(
+            plugin=plugin,
+            enabled=example_data.get('enabled', False),
+            values=example_data.get('values')
         )
 
 class PluginSubmissionViewSet(viewsets.ViewSet):

@@ -71,6 +71,7 @@ class Runtime(models.Model):
     plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='runtime')
     environments = models.JSONField(default=list)
     entrypoint = models.CharField(max_length=255)
+    docker = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         if self.environments:
@@ -87,11 +88,19 @@ class Input(models.Model):
     description = models.TextField(blank=True, null=True)
     placeholder = models.CharField(max_length=255, blank=True, null=True)
     file_types = models.JSONField(blank=True, null=True, default=list)
+    accept = models.CharField(max_length=255, blank=True, null=True)
     multiple = models.BooleanField(default=False)
     sourceFile = models.CharField(max_length=255, blank=True, null=True)
     min = models.FloatField(blank=True, null=True)
     max = models.FloatField(blank=True, null=True)
     step = models.FloatField(blank=True, null=True)
+    options = models.JSONField(blank=True, null=True)
+    optionsFromFile = models.CharField(max_length=255, blank=True, null=True)
+    groups = models.JSONField(blank=True, null=True)
+    groupsFromFile = models.CharField(max_length=255, blank=True, null=True)
+    visibleWhen = models.JSONField(blank=True, null=True)
+    disableAnnotationManagement = models.BooleanField(default=False)
+    tableColumns = models.JSONField(blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -125,6 +134,48 @@ class PluginEnvVariable(models.Model):
 
     def __str__(self):
         return self.name
+
+class Execution(models.Model):
+    plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='execution')
+    argsMapping = models.JSONField(blank=True, null=True)
+    outputDir = models.CharField(max_length=255, blank=True, null=True)
+    requirements = models.JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.plugin.name} - Execution"
+
+
+class Plot(models.Model):
+    plugin = models.ForeignKey(Plugin, on_delete=models.CASCADE, related_name='plots')
+    plot_id = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
+    type = models.CharField(max_length=50)
+    component = models.CharField(max_length=255)
+    dataSource = models.CharField(max_length=255)
+    config = models.JSONField(blank=True, null=True)
+    customization = models.JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.plugin.name} - {self.name}"
+
+
+class Annotation(models.Model):
+    plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='annotation')
+    samplesFrom = models.CharField(max_length=255, blank=True, null=True)
+    annotationFile = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.plugin.name} - Annotation"
+
+
+class Example(models.Model):
+    plugin = models.OneToOneField(Plugin, on_delete=models.CASCADE, related_name='example')
+    enabled = models.BooleanField(default=False)
+    values = models.JSONField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.plugin.name} - Example"
+
 
 class RepositorySSHKey(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ssh_keys')
