@@ -273,6 +273,24 @@ th { color: var(--text-color); }
     border-radius: 0;
 }
 
+/* Synthwave Canvas */
+#synth-canvas {
+    position: fixed;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 40%;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.4;
+    transform: translateY(-50%);
+    display: none;
+}
+
+[data-theme^="cyber-"] #synth-canvas {
+    display: block;
+}
+
 /* Homepage Hero Styles - Theme Aware Contrast */
 .homepage-hero-bg {
     background: var(--hero-bg) !important;
