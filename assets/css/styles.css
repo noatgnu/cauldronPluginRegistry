@@ -245,25 +245,12 @@ th { color: var(--text-color); }
 }
 
 [data-theme^="cyber-"] h1 {
-    margin-bottom: 50px;
-    padding-bottom: 15px;
-}
-[data-theme^="cyber-"] h1::after {
-    content: " ";
-    position: absolute;
-    bottom: 0;
-    left: -10%;
-    width: 120%;
-    height: 6px;
-    background: var(--primary-color);
-    transform: skewX(-45deg);
-    box-shadow: 0 0 15px var(--primary-color);
-    display: block !important;
+    margin-bottom: 30px;
 }
 
 /* Secondary bars for headers to make it more "cyber" */
 [data-theme^="cyber-"] h2, [data-theme^="cyber-"] h3, [data-theme^="cyber-"] h4 {
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 
 [data-theme^="cyber-"] .card {
