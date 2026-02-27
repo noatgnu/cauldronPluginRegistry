@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function initSynth() {
         if (!canvas) return;
         canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight * 0.4;
+        canvas.height = window.innerHeight * 0.6;
         particles = [];
         const particleCount = 150;
         for (let i = 0; i < particleCount; i++) {

@@ -197,16 +197,17 @@ th { color: var(--text-color); }
 
 /* Synthwave Canvas */
 #synth-canvas {
-    position: fixed;
-    top: 50%;
+    position: absolute;
+    top: 0;
     left: 0;
     width: 100%;
-    height: 40%;
+    height: 60vh;
     pointer-events: none;
     z-index: 0;
-    opacity: 0.8;
-    transform: translateY(-50%);
+    opacity: 0.5;
     display: none;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 20%, rgba(0,0,0,0) 100%);
 }
 
 [data-theme^="cyber-"] #synth-canvas {
