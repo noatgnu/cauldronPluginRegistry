@@ -37,6 +37,31 @@ def check_repo_requires_auth(repo_url):
     except Exception:
         return True
 
+
+def clone_repo_with_timeout(repo_url, temp_dir, timeout=60, env=None, depth=None):
+    """Clone a repository with timeout support."""
+    cmd = ['git', 'clone']
+    if depth:
+        cmd.extend(['--depth', str(depth)])
+    cmd.extend([repo_url, temp_dir])
+
+    clone_env = os.environ.copy()
+    if env:
+        clone_env.update(env)
+
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        env=clone_env
+    )
+
+    if result.returncode != 0:
+        raise git.exc.GitCommandError(cmd, result.returncode, result.stderr)
+
+    return git.Repo(temp_dir)
+
 def setup_git_ssh_auth(repo_url, user):
     normalized_url = normalize_repo_url(repo_url)
 

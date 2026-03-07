@@ -5,66 +5,271 @@
 {% block content %}
 <div class="row" style="margin-top: 40px;">
     <div class="col s12 m10 offset-m1 l8 offset-l2">
-        <h1 style="font-weight: 300; margin-bottom: 20px;">Bulk Submit Plugins</h1>
+        <h4 style="font-weight: 300; margin-bottom: 20px;">Bulk Submit Plugins</h4>
         <p class="grey-text" style="margin-bottom: 40px;">
             Submit multiple plugins at once by providing their Git repository URLs (one per line, maximum 10).
         </p>
 
-        <form method="post" id="bulk-submit-form">
-            {% csrf_token %}
-            {% if form.non_field_errors %}
-                <div class="card-panel red lighten-4 red-text text-darken-4" style="margin-bottom: 20px;">
-                    {{ form.non_field_errors }}
+        <div class="row">
+            <div class="input-field col s12">
+                <i class="material-icons prefix">link</i>
+                <textarea id="repo-urls" class="materialize-textarea" required></textarea>
+                <label for="repo-urls">Git Repository URLs (one per line)</label>
+                <span class="helper-text">Enter one repository URL per line (maximum 10)</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <button class="btn-large waves-effect waves-light" type="button" id="submit-btn" onclick="startBulkSubmit()">
+                    Submit Plugins
+                    <i class="material-icons right">send</i>
+                </button>
+            </div>
+        </div>
+
+        <div id="progress-section" style="display: none; margin-top: 30px;">
+            <h5 style="font-weight: 300; margin-bottom: 15px;">Progress</h5>
+            <div class="progress" style="margin-bottom: 10px;">
+                <div id="progress-bar" class="determinate" style="width: 0%"></div>
+            </div>
+            <p id="progress-text" class="grey-text" style="margin-bottom: 20px;">0 / 0 completed</p>
+
+            <div id="results-list"></div>
+        </div>
+
+        <div id="summary-section" style="display: none; margin-top: 30px;">
+            <div id="summary-card" class="card">
+                <div class="card-content">
+                    <span class="card-title" style="font-weight: 400;">Summary</span>
+                    <p id="summary-text"></p>
                 </div>
-            {% endif %}
-            <div class="row">
-                <div class="input-field col s12">
-                    <i class="material-icons prefix" style="margin-top: 10px;">link</i>
-                    <textarea id="{{ form.repo_urls.id_for_label }}" name="{{ form.repo_urls.name }}" class="materialize-textarea" style="padding-left: 3rem;" required>{% if form.repo_urls.value %}{{ form.repo_urls.value }}{% endif %}</textarea>
-                    <label for="{{ form.repo_urls.id_for_label }}" {% if form.repo_urls.value %}class="active"{% endif %}>Git Repository URLs (one per line)</label>
-                    {% if form.repo_urls.errors %}
-                        <span class="helper-text red-text">{{ form.repo_urls.errors.as_text }}</span>
-                    {% else %}
-                        <span class="helper-text">Enter one repository URL per line (maximum 10)</span>
-                    {% endif %}
+                <div class="card-action">
+                    <a href="{% url 'plugin-list' %}">View All Plugins</a>
+                    <a href="#" onclick="resetForm(); return false;">Submit More</a>
                 </div>
             </div>
-            <div class="row">
-                <div class="col s12">
-                    <button class="btn-large waves-effect waves-light" type="submit" name="action" id="submit-btn">
-                        Submit Plugins
-                        <i class="material-icons right">send</i>
-                    </button>
-                </div>
-            </div>
-            <div class="row" id="processing-indicator" style="display: none;">
-                <div class="col s12">
-                    <div class="card processing-card">
-                        <div class="card-content">
-                            <p class="center-align">
-                                <i class="material-icons rotating processing-icon">sync</i>
-                            </p>
-                            <p class="center-align processing-title">Processing bulk submission...</p>
-                            <p class="center-align grey-text">Cloning repositories and validating plugin.yaml files</p>
-                            <div class="progress">
-                                <div class="indeterminate"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
+        </div>
     </div>
 </div>
 
-<script>
-    document.getElementById('bulk-submit-form').addEventListener('submit', function(e) {
-        const submitBtn = document.getElementById('submit-btn');
-        const processingIndicator = document.getElementById('processing-indicator');
+<style>
+.result-item {
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--card-bg);
+    border: 1px solid rgba(150, 150, 150, 0.2);
+}
+.result-item.pending {
+    border-left: 4px solid #9e9e9e;
+}
+.result-item.processing {
+    border-left: 4px solid var(--primary-color);
+}
+.result-item.success {
+    border-left: 4px solid #4caf50;
+}
+.result-item.error {
+    border-left: 4px solid #f44336;
+}
+.result-item .status-icon {
+    font-size: 20px;
+}
+.result-item.pending .status-icon { color: #9e9e9e; }
+.result-item.processing .status-icon { color: var(--primary-color); }
+.result-item.success .status-icon { color: #4caf50; }
+.result-item.error .status-icon { color: #f44336; }
+.result-item .url {
+    flex: 1;
+    font-family: monospace;
+    font-size: 13px;
+    word-break: break-all;
+    color: var(--text-color);
+}
+.result-item .message {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+.result-item.error .message {
+    color: #f44336;
+    opacity: 1;
+}
+.result-item.success .message {
+    color: #4caf50;
+    opacity: 1;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.spinning {
+    animation: spin 1s linear infinite;
+}
+#summary-card.success-card {
+    border-left: 4px solid #4caf50;
+}
+#summary-card.error-card {
+    border-left: 4px solid #f44336;
+}
+#summary-card.mixed-card {
+    border-left: 4px solid #ff9800;
+}
+</style>
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Processing... <i class="material-icons right">hourglass_empty</i>';
-        processingIndicator.style.display = 'block';
+<script>
+const csrfToken = '{{ csrf_token }}';
+let isProcessing = false;
+
+function getStatusIcon(status) {
+    switch(status) {
+        case 'pending': return 'schedule';
+        case 'processing': return 'sync';
+        case 'success': return 'check_circle';
+        case 'error': return 'error';
+        default: return 'help';
+    }
+}
+
+function createResultItem(url, index) {
+    return `
+        <div class="result-item pending" id="result-${index}">
+            <i class="material-icons status-icon">${getStatusIcon('pending')}</i>
+            <div style="flex: 1;">
+                <div class="url">${escapeHtml(url)}</div>
+                <div class="message" id="message-${index}">Waiting...</div>
+            </div>
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function updateResultItem(index, status, message) {
+    const item = document.getElementById(`result-${index}`);
+    const icon = item.querySelector('.status-icon');
+    const messageEl = document.getElementById(`message-${index}`);
+
+    item.className = `result-item ${status}`;
+    icon.textContent = getStatusIcon(status);
+    icon.classList.toggle('spinning', status === 'processing');
+    messageEl.textContent = message;
+}
+
+function updateProgress(completed, total) {
+    const percent = total > 0 ? (completed / total) * 100 : 0;
+    document.getElementById('progress-bar').style.width = `${percent}%`;
+    document.getElementById('progress-text').textContent = `${completed} / ${total} completed`;
+}
+
+async function submitPlugin(url) {
+    const response = await fetch('/api/submit/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ repo_url: url })
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || 'Unknown error');
+    }
+
+    return data;
+}
+
+async function startBulkSubmit() {
+    if (isProcessing) return;
+
+    const textarea = document.getElementById('repo-urls');
+    const urls = textarea.value
+        .split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
+
+    if (urls.length === 0) {
+        M.toast({html: 'Please enter at least one repository URL'});
+        return;
+    }
+
+    if (urls.length > 10) {
+        M.toast({html: 'Maximum 10 URLs allowed'});
+        return;
+    }
+
+    isProcessing = true;
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Processing... <i class="material-icons right">hourglass_empty</i>';
+
+    const progressSection = document.getElementById('progress-section');
+    const resultsList = document.getElementById('results-list');
+    const summarySection = document.getElementById('summary-section');
+
+    progressSection.style.display = 'block';
+    summarySection.style.display = 'none';
+    resultsList.innerHTML = urls.map((url, i) => createResultItem(url, i)).join('');
+    updateProgress(0, urls.length);
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        updateResultItem(i, 'processing', 'Cloning and processing...');
+
+        try {
+            const result = await submitPlugin(url);
+            successCount++;
+            updateResultItem(i, 'success', `${result.name || result.id} v${result.version || '?'}`);
+        } catch (error) {
+            errorCount++;
+            updateResultItem(i, 'error', error.message);
+        }
+
+        updateProgress(i + 1, urls.length);
+    }
+
+    const summaryText = document.getElementById('summary-text');
+    const parts = [];
+    if (successCount > 0) parts.push(`${successCount} successful`);
+    if (errorCount > 0) parts.push(`${errorCount} failed`);
+    summaryText.textContent = `Processed ${urls.length} repositories: ${parts.join(', ')}.`;
+
+    const summaryCard = document.getElementById('summary-card');
+    summaryCard.classList.remove('success-card', 'error-card', 'mixed-card');
+    if (errorCount === 0) {
+        summaryCard.classList.add('success-card');
+    } else if (successCount === 0) {
+        summaryCard.classList.add('error-card');
+    } else {
+        summaryCard.classList.add('mixed-card');
+    }
+
+    summarySection.style.display = 'block';
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Submit Plugins <i class="material-icons right">send</i>';
+    isProcessing = false;
+}
+
+function resetForm() {
+    document.getElementById('repo-urls').value = '';
+    document.getElementById('progress-section').style.display = 'none';
+    document.getElementById('summary-section').style.display = 'none';
+    document.getElementById('results-list').innerHTML = '';
+    M.textareaAutoResize(document.getElementById('repo-urls'));
+    M.updateTextFields();
+}
 </script>
 {% endblock %}
