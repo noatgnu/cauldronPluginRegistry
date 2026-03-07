@@ -431,7 +431,7 @@ def set_pending(modeladmin, request, queryset):
 @admin.register(Plugin)
 class PluginAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'id', 'version', 'status_badge', 'author', 'category',
+        'name', 'id', 'version', 'status', 'author', 'category',
         'short_commit', 'repo_link', 'input_count', 'output_count', 'updated_at'
     )
     list_filter = ('status', 'category', 'author', 'diagram_enabled', 'citation_enabled', 'requires_authentication')
