@@ -1,4 +1,5 @@
 import tempfile
+import subprocess
 import git
 import yaml
 import os
@@ -22,17 +23,19 @@ def normalize_repo_url(repo_url):
     return repo_url
 
 def check_repo_requires_auth(repo_url):
+    """Check if repository requires authentication using git ls-remote (faster than clone)."""
     try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            git.Repo.clone_from(repo_url, temp_dir, depth=1)
-            return False
-    except git.exc.GitCommandError as e:
-        error_message = str(e).lower()
-        if any(keyword in error_message for keyword in ['authentication', 'permission denied', 'could not read', 'fatal: could not read from remote repository']):
-            return True
-        raise
+        result = subprocess.run(
+            ['git', 'ls-remote', '--exit-code', '-h', repo_url],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.returncode != 0
+    except subprocess.TimeoutExpired:
+        return True
     except Exception:
-        raise
+        return True
 
 def setup_git_ssh_auth(repo_url, user):
     normalized_url = normalize_repo_url(repo_url)
