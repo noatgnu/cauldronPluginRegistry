@@ -39,6 +39,7 @@ class Command(BaseCommand):
                 'name': plugin_data.get('name', plugin_id),
                 'description': plugin_data.get('description', ''),
                 'version': plugin_data.get('version', '1.0.0'),
+                'schema_version': plugin_data.get('schemaVersion', 0),
                 'author': author,
                 'category': category,
                 'subcategory': plugin_data.get('subcategory'),

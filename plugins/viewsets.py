@@ -353,6 +353,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'name': plugin_info.get('name'),
                             'description': plugin_info.get('description'),
                             'version': plugin_info.get('version'),
+                            'schema_version': plugin_info.get('schemaVersion', 0),
                             'author': author,
                             'category': category,
                             'subcategory': plugin_info.get('subcategory'),
@@ -484,6 +485,7 @@ class PluginSubmissionViewSet(viewsets.ViewSet):
                             'name': plugin_info.get('name'),
                             'description': plugin_info.get('description'),
                             'version': plugin_info.get('version'),
+                            'schema_version': plugin_info.get('schemaVersion', 0),
                             'author': author,
                             'category': category,
                             'subcategory': plugin_info.get('subcategory'),
@@ -580,6 +582,13 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
 
                 has_update = recommended != plugin.commit_hash
 
+                latest_schema_version = plugin.schema_version
+                plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                if os.path.exists(plugin_yaml_path):
+                    with open(plugin_yaml_path, 'r') as f:
+                        latest_plugin_data = yaml.safe_load(f)
+                    latest_schema_version = latest_plugin_data.get('plugin', {}).get('schemaVersion', 0)
+
                 return Response({
                     'plugin_id': plugin.id,
                     'current_commit': plugin.commit_hash,
@@ -587,6 +596,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                     'recommended_commit': recommended,
                     'latest_stable_tag': latest_tag,
                     'has_update': has_update,
+                    'current_schema_version': plugin.schema_version,
+                    'latest_schema_version': latest_schema_version,
+                    'schema_migration_available': latest_schema_version > plugin.schema_version,
                     'changelog_url': f"{plugin.repository}/compare/{plugin.commit_hash}...{recommended}" if has_update else None
                 }, status=status.HTTP_200_OK)
 
@@ -687,6 +699,7 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 plugin.name = plugin_info.get('name')
                 plugin.description = plugin_info.get('description')
                 plugin.version = plugin_info.get('version')
+                plugin.schema_version = plugin_info.get('schemaVersion', 0)
                 plugin.author = author
                 plugin.category = category
                 plugin.icon = plugin_info.get('icon')
@@ -739,6 +752,13 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
 
                 has_update = latest_commit != plugin.commit_hash
 
+                latest_schema_version = plugin.schema_version
+                plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                if os.path.exists(plugin_yaml_path):
+                    with open(plugin_yaml_path, 'r') as f:
+                        latest_plugin_data = yaml.safe_load(f)
+                    latest_schema_version = latest_plugin_data.get('plugin', {}).get('schemaVersion', 0)
+
                 return Response({
                     'plugin_id': plugin.id,
                     'current_commit': plugin.commit_hash,
@@ -746,6 +766,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                     'latest_stable_tag': latest_tag,
                     'has_update': has_update,
                     'recommended_commit': plugin.recommended_commit,
+                    'current_schema_version': plugin.schema_version,
+                    'latest_schema_version': latest_schema_version,
+                    'schema_migration_available': latest_schema_version > plugin.schema_version,
                 }, status=status.HTTP_200_OK)
 
         except git.exc.GitCommandError as e:
@@ -826,6 +849,7 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                 plugin.name = plugin_info.get('name')
                 plugin.description = plugin_info.get('description')
                 plugin.version = plugin_info.get('version')
+                plugin.schema_version = plugin_info.get('schemaVersion', 0)
                 plugin.author = author
                 plugin.category = category
                 plugin.icon = plugin_info.get('icon')
@@ -890,6 +914,13 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                         recommended = plugin.recommended_commit if plugin.recommended_commit else latest_commit
                         has_update = recommended != plugin.commit_hash
 
+                        latest_schema_version = plugin.schema_version
+                        plugin_yaml_path = os.path.join(temp_dir, 'plugin.yaml')
+                        if os.path.exists(plugin_yaml_path):
+                            with open(plugin_yaml_path, 'r') as f:
+                                latest_plugin_data = yaml.safe_load(f)
+                            latest_schema_version = latest_plugin_data.get('plugin', {}).get('schemaVersion', 0)
+
                         results.append({
                             'plugin_id': plugin.id,
                             'plugin_name': plugin.name,
@@ -898,6 +929,9 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                             'recommended_commit': recommended,
                             'latest_stable_tag': latest_tag,
                             'has_update': has_update,
+                            'current_schema_version': plugin.schema_version,
+                            'latest_schema_version': latest_schema_version,
+                            'schema_migration_available': latest_schema_version > plugin.schema_version,
                             'changelog_url': f"{plugin.repository}/compare/{plugin.commit_hash}...{recommended}" if has_update else None,
                             'success': True
                         })
@@ -1022,6 +1056,7 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
                         plugin.name = plugin_info.get('name')
                         plugin.description = plugin_info.get('description')
                         plugin.version = plugin_info.get('version')
+                        plugin.schema_version = plugin_info.get('schemaVersion', 0)
                         plugin.author = author
                         plugin.category = category
                         plugin.icon = plugin_info.get('icon')

@@ -33,6 +33,7 @@ class Plugin(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     version = models.CharField(max_length=255)
+    schema_version = models.IntegerField(default=0)
     author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
     subcategory = models.CharField(max_length=255, blank=True, null=True)

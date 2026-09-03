@@ -431,7 +431,7 @@ def set_pending(modeladmin, request, queryset):
 @admin.register(Plugin)
 class PluginAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'id', 'version', 'status', 'author', 'category',
+        'name', 'id', 'version', 'schema_version', 'status', 'author', 'category',
         'short_commit', 'repo_link', 'input_count', 'output_count', 'updated_at'
     )
     list_filter = ('status', 'category', 'author', 'diagram_enabled', 'citation_enabled', 'requires_authentication')
@@ -444,7 +444,7 @@ class PluginAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Basic Info', {
-            'fields': ('id', 'name', 'description', 'version', 'icon')
+            'fields': ('id', 'name', 'description', 'version', 'schema_version', 'icon')
         }),
         ('Classification', {
             'fields': ('author', 'category', 'subcategory', 'status')
