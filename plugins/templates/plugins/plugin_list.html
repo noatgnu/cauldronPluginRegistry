@@ -4,7 +4,88 @@
 
 {% block content %}
     <h1 style="font-weight: 300;">Browse Plugins</h1>
-    
+
+    <div class="row">
+        <form action="{% url 'plugin-list' %}" method="get" class="col s12">
+            <div class="row" style="margin-bottom: 0;">
+                <div class="input-field col s12 m4">
+                    <input id="q" type="text" name="q" value="{{ selected.q }}">
+                    <label for="q" class="{% if selected.q %}active{% endif %}">Search by name</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="category__name">
+                        <option value="">Any category</option>
+                        {% for category in categories %}
+                            <option value="{{ category }}" {% if selected.category__name == category %}selected{% endif %}>{{ category }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>Category</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="subcategory">
+                        <option value="">Any subcategory</option>
+                        {% for subcategory in subcategories %}
+                            <option value="{{ subcategory }}" {% if selected.subcategory == subcategory %}selected{% endif %}>{{ subcategory }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>Subcategory</label>
+                </div>
+            </div>
+            <div class="row" style="margin-bottom: 0;">
+                <div class="input-field col s12 m4">
+                    <select name="language">
+                        <option value="">Any language</option>
+                        {% for language in languages %}
+                            <option value="{{ language }}" {% if selected.language == language %}selected{% endif %}>{{ language }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>Language</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="tag">
+                        <option value="">Any tag</option>
+                        {% for tag in tags %}
+                            <option value="{{ tag }}" {% if selected.tag == tag %}selected{% endif %}>{{ tag }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>Tag</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="diagram_enabled">
+                        <option value="">Diagram: any</option>
+                        <option value="true" {% if selected.diagram_enabled == 'true' %}selected{% endif %}>Diagram: enabled</option>
+                        <option value="false" {% if selected.diagram_enabled == 'false' %}selected{% endif %}>Diagram: disabled</option>
+                    </select>
+                    <label>Diagram</label>
+                </div>
+            </div>
+            <div class="row" style="margin-bottom: 0;">
+                <div class="input-field col s12 m4">
+                    <select name="citation_enabled">
+                        <option value="">Citation: any</option>
+                        <option value="true" {% if selected.citation_enabled == 'true' %}selected{% endif %}>Citation: enabled</option>
+                        <option value="false" {% if selected.citation_enabled == 'false' %}selected{% endif %}>Citation: disabled</option>
+                    </select>
+                    <label>Citation</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select name="requires_authentication">
+                        <option value="">Authentication: any</option>
+                        <option value="true" {% if selected.requires_authentication == 'true' %}selected{% endif %}>Authentication: required</option>
+                        <option value="false" {% if selected.requires_authentication == 'false' %}selected{% endif %}>Authentication: not required</option>
+                    </select>
+                    <label>Authentication</label>
+                </div>
+                <div class="col s12 m4" style="padding-top: 25px;">
+                    <button type="submit" class="btn waves-effect waves-light">
+                        Filter <i class="material-icons right">filter_list</i>
+                    </button>
+                    <a href="{% url 'plugin-list' %}" class="btn-flat waves-effect">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <div class="row">
         <div class="col s12">
             <table class="striped responsive-table">

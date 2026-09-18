@@ -12,6 +12,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import Plugin, Author, Category, Runtime, Input, Output, PluginEnvVariable, RepositorySSHKey, Execution, Plot, Annotation, Example
 from .serializers import PluginSerializer, AuthorSerializer, CategorySerializer, PluginSubmissionSerializer, BulkPluginSubmissionSerializer
 from .permissions import IsOwnerOrAdmin
+from .filtering import visible_plugins, apply_plugin_filters, plugin_filter_options
 
 from django.conf import settings
 import markdown
@@ -550,19 +551,13 @@ class PluginViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        queryset = Plugin.objects.all()
-        if not self.request.user.is_staff:
-            queryset = queryset.filter(status='approved')
+        queryset = visible_plugins(self.request.user)
+        return apply_plugin_filters(queryset, self.request.query_params)
 
-        category_name = self.request.query_params.get('category__name')
-        if category_name:
-            queryset = queryset.filter(category__name=category_name)
-
-        author_name = self.request.query_params.get('author__name')
-        if author_name:
-            queryset = queryset.filter(author__name=author_name)
-
-        return queryset
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def filter_options(self, request):
+        """Return the unique values available for each filterable plugin property."""
+        return Response(plugin_filter_options(visible_plugins(request.user)))
 
     @action(detail=True, methods=['get'], permission_classes=[AllowAny])
     def check_update(self, request, pk=None):

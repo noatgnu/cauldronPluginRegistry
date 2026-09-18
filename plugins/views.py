@@ -10,6 +10,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.decorators import method_decorator
 from .forms import PluginSubmitForm, SSHKeyForm, BulkPluginSubmitForm
 from .viewsets import PluginSubmissionViewSet
+from .filtering import visible_plugins, apply_plugin_filters, plugin_filter_options
 
 def home_view(request):
     return render(request, 'home.html')
@@ -107,13 +108,27 @@ class PluginListView(ListView):
     template_name = 'plugins/plugin_list.html'
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        if not self.request.user.is_staff:
-            queryset = queryset.filter(status='approved')
+        queryset = visible_plugins(self.request.user)
+        queryset = apply_plugin_filters(queryset, self.request.GET)
         query = self.request.GET.get('q')
         if query:
             queryset = queryset.filter(name__icontains=query)
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update(plugin_filter_options(visible_plugins(self.request.user)))
+        context['selected'] = {
+            'q': self.request.GET.get('q', ''),
+            'category__name': self.request.GET.get('category__name', ''),
+            'subcategory': self.request.GET.get('subcategory', ''),
+            'language': self.request.GET.get('language', ''),
+            'tag': self.request.GET.get('tag', ''),
+            'diagram_enabled': self.request.GET.get('diagram_enabled', ''),
+            'citation_enabled': self.request.GET.get('citation_enabled', ''),
+            'requires_authentication': self.request.GET.get('requires_authentication', ''),
+        }
+        return context
 
 class PluginDetailView(DetailView):
     model = Plugin
