@@ -50,32 +50,6 @@
                     </select>
                     <label>Tag</label>
                 </div>
-                <div class="input-field col s12 m4">
-                    <select name="diagram_enabled">
-                        <option value="">Diagram: any</option>
-                        <option value="true" {% if selected.diagram_enabled == 'true' %}selected{% endif %}>Diagram: enabled</option>
-                        <option value="false" {% if selected.diagram_enabled == 'false' %}selected{% endif %}>Diagram: disabled</option>
-                    </select>
-                    <label>Diagram</label>
-                </div>
-            </div>
-            <div class="row" style="margin-bottom: 0;">
-                <div class="input-field col s12 m4">
-                    <select name="citation_enabled">
-                        <option value="">Citation: any</option>
-                        <option value="true" {% if selected.citation_enabled == 'true' %}selected{% endif %}>Citation: enabled</option>
-                        <option value="false" {% if selected.citation_enabled == 'false' %}selected{% endif %}>Citation: disabled</option>
-                    </select>
-                    <label>Citation</label>
-                </div>
-                <div class="input-field col s12 m4">
-                    <select name="requires_authentication">
-                        <option value="">Authentication: any</option>
-                        <option value="true" {% if selected.requires_authentication == 'true' %}selected{% endif %}>Authentication: required</option>
-                        <option value="false" {% if selected.requires_authentication == 'false' %}selected{% endif %}>Authentication: not required</option>
-                    </select>
-                    <label>Authentication</label>
-                </div>
                 <div class="col s12 m4" style="padding-top: 25px;">
                     <button type="submit" class="btn waves-effect waves-light">
                         Filter <i class="material-icons right">filter_list</i>

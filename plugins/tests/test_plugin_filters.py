@@ -18,7 +18,7 @@ class TestPluginFilters:
             id='python-plugin', name='Python Plugin', version='1.0.0',
             author=self.author_a, category=self.category_qc,
             subcategory='reporting', status='approved',
-            diagram_enabled=True, citation_enabled=False,
+            requires_authentication=True,
         )
         Runtime.objects.create(plugin=self.plugin_python, environments=['python'], entrypoint='run.py')
         tag = Tag.objects.create(name='proteomics')
@@ -28,7 +28,7 @@ class TestPluginFilters:
             id='r-plugin', name='R Plugin', version='1.0.0',
             author=self.author_b, category=self.category_util,
             subcategory='analysis', status='approved',
-            diagram_enabled=False, citation_enabled=True,
+            requires_authentication=False,
         )
         Runtime.objects.create(plugin=self.plugin_r, environments=['r'], entrypoint='run.R')
 
@@ -57,13 +57,11 @@ class TestPluginFilters:
         response = self.client.get('/api/plugins/', {'tag': 'proteomics'})
         assert {p['id'] for p in response.data} == {'python-plugin'}
 
-    def test_filter_by_diagram_enabled(self):
-        response = self.client.get('/api/plugins/', {'diagram_enabled': 'true'})
-        assert {p['id'] for p in response.data} == {'python-plugin'}
-
-    def test_filter_by_citation_enabled_false(self):
-        response = self.client.get('/api/plugins/', {'citation_enabled': 'false'})
-        assert {p['id'] for p in response.data} == {'python-plugin'}
+    def test_diagram_citation_and_authentication_are_not_filterable(self):
+        response = self.client.get('/api/plugins/', {
+            'diagram_enabled': 'true', 'citation_enabled': 'true', 'requires_authentication': 'true',
+        })
+        assert {p['id'] for p in response.data} == {'python-plugin', 'r-plugin'}
 
     def test_pending_plugin_excluded_for_anonymous(self):
         response = self.client.get('/api/plugins/', {'language': 'python'})
@@ -84,11 +82,6 @@ class TestPluginFilters:
         assert response.status_code == status.HTTP_200_OK
         ids = {p.id for p in response.context['object_list']}
         assert ids == {'r-plugin'}
-
-    def test_django_list_page_filters_by_diagram_enabled(self):
-        response = self.client.get('/plugins/', {'diagram_enabled': 'true'})
-        ids = {p.id for p in response.context['object_list']}
-        assert ids == {'python-plugin'}
 
     def test_django_list_page_no_filter_returns_all_approved(self):
         response = self.client.get('/plugins/')

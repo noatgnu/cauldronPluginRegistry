@@ -94,6 +94,8 @@ CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,
 
 AUTO_APPROVE_PLUGINS = config('AUTO_APPROVE_PLUGINS', default=False, cast=bool)
 
+ENCRYPTION_KEY = config('ENCRYPTION_KEY', default=None)
+
 ROOT_URLCONF = 'cauldronPluginRegistry.urls'
 
 TEMPLATES = [

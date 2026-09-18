@@ -124,9 +124,6 @@ class PluginListView(ListView):
             'subcategory': self.request.GET.get('subcategory', ''),
             'language': self.request.GET.get('language', ''),
             'tag': self.request.GET.get('tag', ''),
-            'diagram_enabled': self.request.GET.get('diagram_enabled', ''),
-            'citation_enabled': self.request.GET.get('citation_enabled', ''),
-            'requires_authentication': self.request.GET.get('requires_authentication', ''),
         }
         return context
 

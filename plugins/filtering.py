@@ -1,7 +1,5 @@
 from .models import Plugin, Runtime, Tag
 
-BOOLEAN_FILTER_FIELDS = ('diagram_enabled', 'citation_enabled', 'requires_authentication')
-
 
 def visible_plugins(user):
     queryset = Plugin.objects.all()
@@ -35,11 +33,6 @@ def apply_plugin_filters(queryset, params):
             if language in (runtime.environments or [])
         ]
         queryset = queryset.filter(id__in=matching_plugin_ids)
-
-    for flag in BOOLEAN_FILTER_FIELDS:
-        raw_value = params.get(flag)
-        if raw_value:
-            queryset = queryset.filter(**{flag: raw_value.lower() in ('1', 'true', 'yes')})
 
     return queryset.distinct()
 
