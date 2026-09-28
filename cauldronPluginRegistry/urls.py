@@ -22,6 +22,7 @@ from plugins.views import home_view, CustomLoginView, logout_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('plugins.api_urls')),
+    path('api/', include('recipes.api_urls')),
     path('api-token-auth/', views.obtain_auth_token),
     path('oauth/', include('social_django.urls', namespace='social')),
 
@@ -29,4 +30,5 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', logout_view, name='logout'),
     path('plugins/', include('plugins.urls')),
+    path('recipes/', include('recipes.urls')),
 ]

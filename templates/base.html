@@ -25,10 +25,12 @@
                 <a href="{% url 'home' %}" class="brand-logo" style="padding-left: 20px;">Cauldron Registry</a>
                 <ul id="nav-mobile" class="right hide-on-med-and-down">
                     <li><a href="{% url 'plugin-list' %}">Browse Plugins</a></li>
+                    <li><a href="{% url 'recipe-list' %}">Browse Recipes</a></li>
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'user-profile' %}">My Profile</a></li>
                         <li><a href="{% url 'user-plugin-list' %}">My Plugins</a></li>
                         <li><a href="{% url 'plugin-submit' %}">Submit Plugin</a></li>
+                        <li><a href="{% url 'recipe-submit' %}">Submit Recipe</a></li>
                         {% if user.is_staff %}
                         <li><a href="{% url 'plugin-bulk-submit' %}">Bulk Submit</a></li>
                         {% endif %}

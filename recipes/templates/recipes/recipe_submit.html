@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Recipe - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+<div class="row" style="margin-top: 40px;">
+    <div class="col s12 m10 offset-m1 l8 offset-l2">
+        <h1 style="font-weight: 300; margin-bottom: 20px;">Submit a Recipe</h1>
+        <p class="grey-text" style="margin-bottom: 40px;">
+            Paste the contents of a recipe exported from the Cauldron app.
+        </p>
+
+        <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="card-panel red lighten-4 red-text text-darken-4">{{ form.non_field_errors }}</div>
+            {% endif %}
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="{{ form.label.id_for_label }}" name="{{ form.label.name }}" type="text" class="validate" required value="{{ form.label.value|default:'' }}">
+                    <label for="{{ form.label.id_for_label }}" class="active">Label</label>
+                    {% if form.label.errors %}<span class="helper-text red-text">{{ form.label.errors.as_text }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <textarea id="{{ form.description.id_for_label }}" name="{{ form.description.name }}" class="materialize-textarea">{{ form.description.value|default:'' }}</textarea>
+                    <label for="{{ form.description.id_for_label }}" class="active">Description</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s6">
+                    <input id="{{ form.author.id_for_label }}" name="{{ form.author.name }}" type="text" value="{{ form.author.value|default:'' }}">
+                    <label for="{{ form.author.id_for_label }}" class="active">Author</label>
+                </div>
+                <div class="input-field col s6">
+                    <input id="{{ form.category.id_for_label }}" name="{{ form.category.name }}" type="text" value="{{ form.category.value|default:'' }}">
+                    <label for="{{ form.category.id_for_label }}" class="active">Category</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="{{ form.tags.id_for_label }}" name="{{ form.tags.name }}" type="text" value="{{ form.tags.value|default:'' }}">
+                    <label for="{{ form.tags.id_for_label }}" class="active">Tags</label>
+                    <span class="helper-text">{{ form.tags.help_text }}</span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <textarea id="{{ form.data.id_for_label }}" name="{{ form.data.name }}" class="materialize-textarea" rows="15" required>{{ form.data.value|default:'' }}</textarea>
+                    <label for="{{ form.data.id_for_label }}" class="active">Recipe JSON</label>
+                    {% if form.data.errors %}<span class="helper-text red-text">{{ form.data.errors.as_text }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                    <button class="btn-large waves-effect waves-light" type="submit">
+                        Submit Recipe
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

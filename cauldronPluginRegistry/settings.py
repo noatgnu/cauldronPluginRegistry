@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'social_django', # <-- Social Auth
     'dbbackup', # <-- Django DB Backup
     'plugins',
+    'recipes',
 ]
 
 DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
@@ -93,6 +94,7 @@ USE_X_FORWARDED_HOST = True
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost,http://127.0.0.1', cast=Csv())
 
 AUTO_APPROVE_PLUGINS = config('AUTO_APPROVE_PLUGINS', default=False, cast=bool)
+AUTO_APPROVE_RECIPES = config('AUTO_APPROVE_RECIPES', default=False, cast=bool)
 
 ENCRYPTION_KEY = config('ENCRYPTION_KEY', default=None)
 
