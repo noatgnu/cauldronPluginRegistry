@@ -5,6 +5,7 @@ from django.test import RequestFactory
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import FormView
 
+from .diagram import generate_recipe_overview_diagram
 from .filtering import apply_recipe_filters, recipe_filter_options, visible_recipes
 from .forms import RecipeSubmitForm
 from .models import Recipe
@@ -43,6 +44,13 @@ class RecipeDetailView(DetailView):
         if not self.request.user.is_staff:
             queryset = queryset.filter(status='approved')
         return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        version = self.object.latest_version()
+        stages = version.data.get('stages') if version and version.data else None
+        context['diagram'] = generate_recipe_overview_diagram(stages or [])
+        return context
 
 
 class RecipeSubmitView(LoginRequiredMixin, FormView):

@@ -46,6 +46,13 @@
                 </div>
                 {% endif %}
                 {% endwith %}
+
+                {% if diagram %}
+                <div style="margin-top: 20px;">
+                    <h6>Diagram</h6>
+                    <pre class="mermaid">{{ diagram }}</pre>
+                </div>
+                {% endif %}
             </div>
             <div class="card-action">
                 <p class="grey-text">
