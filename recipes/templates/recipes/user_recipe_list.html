@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}My Recipes - Cauldron Plugin Registry{% endblock %}
+
+{% block content %}
+    <h1 style="font-weight: 300;">My Submitted Recipes</h1>
+
+    <div class="row">
+        <div class="col s12">
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Description</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th>Revision</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for recipe in object_list %}
+                    <tr>
+                        <td><a href="{% url 'recipe-detail' recipe.pk %}">{{ recipe.label }}</a></td>
+                        <td>{{ recipe.description|truncatechars:100 }}</td>
+                        <td>{{ recipe.author.name }}</td>
+                        <td>{{ recipe.category.name }}</td>
+                        <td>{{ recipe.latest_version.revision|default:"-" }}</td>
+                        <td>{{ recipe.get_status_display }}</td>
+                        <td>
+                            <a href="{% url 'recipe-detail' recipe.pk %}" class="btn-small waves-effect waves-light">View</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="center-align">You have not submitted any recipes yet.</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -29,6 +29,7 @@
                     {% if user.is_authenticated %}
                         <li><a href="{% url 'user-profile' %}">My Profile</a></li>
                         <li><a href="{% url 'user-plugin-list' %}">My Plugins</a></li>
+                        <li><a href="{% url 'user-recipe-list' %}">My Recipes</a></li>
                         <li><a href="{% url 'plugin-submit' %}">Submit Plugin</a></li>
                         <li><a href="{% url 'recipe-submit' %}">Submit Recipe</a></li>
                         {% if user.is_staff %}

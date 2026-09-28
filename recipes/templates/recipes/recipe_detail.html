@@ -7,7 +7,15 @@
     <div class="col s12">
         <div class="card">
             <div class="card-content">
-                <span class="card-title" style="font-weight: 300;">{{ object.label }}</span>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <span class="card-title" style="font-weight: 300; margin: 0;">{{ object.label }}</span>
+                    {% if object.latest_version %}
+                    <a href="{% url 'recipe-download' object.pk %}" class="btn-small waves-effect waves-light">
+                        Download JSON
+                        <i class="material-icons right">file_download</i>
+                    </a>
+                    {% endif %}
+                </div>
                 <p><strong>Author:</strong> {{ object.author.name|default:"-" }}</p>
                 <p><strong>Category:</strong> {{ object.category.name|default:"-" }}</p>
                 <p><strong>Latest revision:</strong> {{ object.latest_version.revision|default:"-" }}</p>
@@ -37,7 +45,13 @@
                             {% for stage in version.data.stages %}
                             <tr>
                                 <td>{{ forloop.counter0 }}</td>
-                                <td><code>{{ stage.pluginId }}</code></td>
+                                <td>
+                                    {% if stage.pluginId in linked_plugin_ids %}
+                                        <a href="{% url 'plugin-detail' stage.pluginId %}"><code>{{ stage.pluginId }}</code></a>
+                                    {% else %}
+                                        <code>{{ stage.pluginId }}</code>
+                                    {% endif %}
+                                </td>
                                 <td>{{ stage.pluginVersion|default:"-" }}</td>
                             </tr>
                             {% endfor %}
@@ -50,16 +64,98 @@
                 {% if diagram %}
                 <div style="margin-top: 20px;">
                     <h6>Diagram</h6>
-                    <pre class="mermaid">{{ diagram }}</pre>
+                    <p class="grey-text" style="font-size: 0.85rem; margin-bottom: 8px;">
+                        Click a stage to expand or collapse it. Scroll to zoom, drag to pan, or use the on-diagram controls.
+                    </p>
+                    <div id="recipe-diagram-source" style="display: none;">{{ diagram }}</div>
+                    <div id="recipe-diagram-canvas" style="border: 1px solid rgba(0,0,0,0.12); border-radius: 4px; height: 60vh; overflow: hidden;"></div>
                 </div>
                 {% endif %}
             </div>
             <div class="card-action">
                 <p class="grey-text">
-                    Open the Cauldron app's Recipe Registry page and search for "{{ object.label }}" to download this recipe.
+                    Open the Cauldron app's Recipe Registry page and search for "{{ object.label }}" to download this recipe directly into the app, or use the button above to save its JSON and import it manually.
                 </p>
             </div>
         </div>
     </div>
 </div>
+
+{% if diagram %}
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+import svgPanZoom from 'https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/+esm';
+
+const canvas = document.getElementById('recipe-diagram-canvas');
+const sourceEl = document.getElementById('recipe-diagram-source');
+const diagramUrl = '{% url "recipe-diagram" object.pk %}';
+
+mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' });
+
+const expandedStages = new Set();
+let renderCount = 0;
+let currentRenderId = '';
+let panZoomInstance = null;
+
+function stageIndexForToggle(domId) {
+    let remainder = domId.startsWith(currentRenderId + '-') ? domId.slice(currentRenderId.length + 1) : domId;
+    if (remainder.startsWith('flowchart-')) {
+        remainder = remainder.slice('flowchart-'.length);
+    }
+    const match = /^S(\d+)(?:_group)?(?:-\d+)?$/.exec(remainder);
+    return match ? Number(match[1]) : null;
+}
+
+async function renderDiagram(source) {
+    if (panZoomInstance) {
+        panZoomInstance.destroy();
+        panZoomInstance = null;
+    }
+    currentRenderId = 'recipe-diagram-' + (renderCount++);
+    const { svg } = await mermaid.render(currentRenderId, source);
+    canvas.innerHTML = svg;
+
+    const svgEl = canvas.querySelector('svg');
+    if (!svgEl) return;
+    svgEl.style.width = '100%';
+    svgEl.style.height = '100%';
+    svgEl.addEventListener('click', function(event) {
+        const el = event.target.closest('[id]');
+        if (!el) return;
+        const stageIndex = stageIndexForToggle(el.id);
+        if (stageIndex === null) return;
+        void toggleStage(stageIndex);
+    });
+    panZoomInstance = svgPanZoom(svgEl, {
+        zoomEnabled: true,
+        controlIconsEnabled: true,
+        fit: true,
+        center: true,
+        minZoom: 0.2,
+        maxZoom: 8
+    });
+}
+
+async function toggleStage(stageIndex) {
+    if (expandedStages.has(stageIndex)) {
+        expandedStages.delete(stageIndex);
+    } else {
+        expandedStages.add(stageIndex);
+    }
+    try {
+        const expandParam = Array.from(expandedStages).join(',');
+        const url = diagramUrl + (expandParam ? ('?expand=' + expandParam) : '');
+        const response = await fetch(url);
+        const source = await response.text();
+        await renderDiagram(source);
+    } catch (err) {
+        console.error('Failed to update recipe diagram:', err);
+    }
+}
+
+if (canvas && sourceEl) {
+    void renderDiagram(sourceEl.textContent);
+}
+</script>
+{% endif %}
 {% endblock %}
